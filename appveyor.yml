@@ -7,42 +7,42 @@ nuget:
   
 branches:
   only:
-    - master
-    - dev
+  - master
+  - dev
 
 pull_requests:
   do_not_increment_build_number: true
 
 init:
- - git config --global core.autocrlf true
+- git config --global core.autocrlf true
 
 before_build:
- - cmd: dotnet restore --no-cache
+- cmd: dotnet restore --no-cache
 
 build_script:
- - ps: 
- - cmd: dotnet build src/Hangfire.Console -c Release
- - cmd: dotnet build tests/Hangfire.Console.Tests -c Release
+- cmd: dotnet build src/Hangfire.Console -c Release
+- cmd: dotnet build tests/Hangfire.Console.Tests -c Release
 
 after_build:
- - cmd: dotnet pack src/Hangfire.Console -o artifacts -c Release
+- cmd: dotnet pack src/Hangfire.Console -o artifacts -c Release
 
 test_script:
- - cmd: dotnet test tests/Hangfire.Console.Tests
+- cmd: dotnet test tests/Hangfire.Console.Tests
 
 artifacts:
-  - path: 'artifacts/**/*.nupkg'
+- path: 'artifacts/**/*.nupkg'
 
 deploy:
- - provider: NuGet
-   server: https://www.myget.org/F/pieceofsummer/api/v2/package
-   api_key:
-     secure: zGtPSEbAdSdw+R1A4kL+xAK92xPP3vlA7Jmwo58OVL1H5OcyqhEbK19kcxVJrD3D
-   skip_symbols: true
+- provider: NuGet
+  server: https://www.myget.org/F/pieceofsummer/api/v2/package
+  api_key:
+    secure: zGtPSEbAdSdw+R1A4kL+xAK92xPP3vlA7Jmwo58OVL1H5OcyqhEbK19kcxVJrD3D
+  skip_symbols: true
 
- - provider: NuGet
-   api_key:
-     secure: /B/lHY/wXT6+qusrGn43U/xANEleYKnijqcoZaPx6E+4Igkgo/iytFaOAsd9g98G
-   skip_symbols: true
-   on:
-     appveyor_repo_tag: true
+- provider: NuGet
+  api_key:
+    secure: /B/lHY/wXT6+qusrGn43U/xANEleYKnijqcoZaPx6E+4Igkgo/iytFaOAsd9g98G
+  skip_symbols: true
+  on:
+    branch: master
+    appveyor_repo_tag: true
