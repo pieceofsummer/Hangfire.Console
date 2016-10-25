@@ -21,11 +21,21 @@ before_build:
 
 build_script:
  - ps: 
- - cmd: dotnet build src/Hangfire.Console --configuration Release --version-suffix %APPVEYOR_BUILD_NUMBER%
- - cmd: dotnet build tests/Hangfire.Console.Tests --configuration Release --version-suffix %APPVEYOR_BUILD_NUMBER%
+ - cmd: dotnet build src/Hangfire.Console -c Release
+ - cmd: dotnet build tests/Hangfire.Console.Tests -c Release
 
 after_build:
- - cmd: dotnet pack src/Hangfire.Console --configuration Release --version-suffix %APPVEYOR_BUILD_NUMBER%
+ - cmd: dotnet pack src/Hangfire.Console -o artifacts -c Release
 
 test_script:
  - cmd: dotnet test tests/Hangfire.Console.Tests
+
+artifacts:
+  - path: 'artifacts/**/*.nupkg'
+
+deploy:
+ - provider: NuGet
+   server: https://www.myget.org/F/pieceofsummer/api/v2/package
+   api_key:
+     secure: zGtPSEbAdSdw+R1A4kL+xAK92xPP3vlA7Jmwo58OVL1H5OcyqhEbK19kcxVJrD3D
+   skip_symbols: true
