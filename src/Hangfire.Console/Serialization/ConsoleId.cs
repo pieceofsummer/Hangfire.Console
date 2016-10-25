@@ -17,24 +17,43 @@ namespace Hangfire.Console.Serialization
         public string JobId { get; }
 
         /// <summary>
-        /// Processing timestamp
+        /// Timestamp
         /// </summary>
-        public DateTime Timestamp { get; }
+        public long Timestamp { get; }
+
+        /// <summary>
+        /// <see cref="Timestamp"/> value as <see cref="DateTime"/>.
+        /// </summary>
+        public DateTime DateValue => UnixEpoch.AddMilliseconds(Timestamp);
         
         /// <summary>
         /// Initializes an instance of <see cref="ConsoleId"/>
         /// </summary>
         /// <param name="jobId">Job identifier</param>
-        /// <param name="timestamp">Processing timestamp</param>
+        /// <param name="timestamp">Timestamp</param>
         public ConsoleId(string jobId, DateTime timestamp)
         {
             if (string.IsNullOrEmpty(jobId))
                 throw new ArgumentNullException(nameof(jobId));
-
+            
             JobId = jobId;
-            Timestamp = timestamp.ToUniversalTime();
+            Timestamp = (long)(timestamp - UnixEpoch).TotalMilliseconds;
+
+            if (Timestamp <= 0 || Timestamp > int.MaxValue * 1000L)
+                throw new ArgumentOutOfRangeException(nameof(timestamp));
         }
         
+        /// <summary>
+        /// Initializes an instance of <see cref="ConsoleId"/>.
+        /// </summary>
+        /// <param name="jobId">Job identifier</param>
+        /// <param name="timestamp">Timestamp</param>
+        private ConsoleId(string jobId, long timestamp)
+        {
+            JobId = jobId;
+            Timestamp = timestamp;
+        }
+
         /// <summary>
         /// Creates an instance of <see cref="ConsoleId"/> from string representation.
         /// </summary>
@@ -60,7 +79,7 @@ namespace Hangfire.Console.Serialization
                 timestamp = (timestamp << 4) | (long)x;
             }
 
-            return new ConsoleId(value.Substring(11), UnixEpoch.AddMilliseconds(timestamp)) { _cachedString = value };
+            return new ConsoleId(value.Substring(11), timestamp) { _cachedString = value };
         }
 
         /// <summary>
@@ -71,7 +90,7 @@ namespace Hangfire.Console.Serialization
         {
             if (ReferenceEquals(other, null)) return false;
             if (ReferenceEquals(other, this)) return true;
-
+            
             return other.Timestamp == Timestamp 
                 && other.JobId == JobId;
         }
@@ -83,7 +102,7 @@ namespace Hangfire.Console.Serialization
             {
                 var buffer = new char[11 + JobId.Length];
 
-                var timestamp = (long)(Timestamp - UnixEpoch).TotalMilliseconds;
+                var timestamp = Timestamp;
                 for (int i = 0; i < 11; i++, timestamp >>= 4)
                 {
                     var c = timestamp & 0x0F;

@@ -57,7 +57,7 @@ namespace Hangfire.Console
             var consoleId = (ConsoleId)context.Items["ConsoleId"];
 
             var line = new ConsoleLine();
-            line.TimeOffset = Math.Round((DateTime.UtcNow - consoleId.Timestamp).TotalSeconds, 3);
+            line.TimeOffset = Math.Round((DateTime.UtcNow - consoleId.DateValue).TotalSeconds, 3);
             line.Message = value ?? "";
 
             if (context.Items.ContainsKey("ConsoleTextColor"))

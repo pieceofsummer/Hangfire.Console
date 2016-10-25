@@ -10,7 +10,7 @@ using System.Text;
 namespace Hangfire.Console.Dashboard
 {
     /// <summary>
-    /// Helper methods to render console shared between 
+    /// Helper methods to render console shared between
     /// <see cref="ProcessingStateRenderer"/> and <see cref="ConsoleDispatcher"/>.
     /// </summary>
     internal static class ConsoleRenderer
@@ -83,7 +83,7 @@ namespace Hangfire.Console.Dashboard
             var items = ReadLines(storage, consoleId, ref start);
 
             builder.AppendFormat("<div class=\"console\" data-id=\"{0}\" data-n=\"{1}\">", consoleId, start);
-            RenderLines(builder, items, consoleId.Timestamp);
+            RenderLines(builder, items, consoleId.DateValue);
             builder.Append("</div>");
         }
 
@@ -128,11 +128,14 @@ namespace Hangfire.Console.Dashboard
                         // No state found for a job, probably it was deleted
                         count = -2;
                     }
-                    else if (!string.Equals(state.Name, ProcessingState.StateName, StringComparison.OrdinalIgnoreCase) ||
-                             JobHelper.DeserializeDateTime(state.Data["StartedAt"]) != consoleId.Timestamp)
+                    else
                     {
-                        // Job has changed its state
-                        count = -1;
+                        if (!string.Equals(state.Name, ProcessingState.StateName, StringComparison.OrdinalIgnoreCase) ||
+                            !consoleId.Equals(new ConsoleId(consoleId.JobId, JobHelper.DeserializeDateTime(state.Data["StartedAt"]))))
+                        {
+                            // Job state has changed (either not Processing, or another Processing with different console id)
+                            count = -1;
+                        }
                     }
                 }
                 
