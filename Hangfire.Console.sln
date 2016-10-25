@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{436BABB0-DBF7-4301-BC7F-CBB9D09FAD36}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{657DF223-42EC-4765-990B-334C62F602EA}"
+	ProjectSection(SolutionItems) = preProject
+		dashboard.png = dashboard.png
+		global.json = global.json
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{CBD2EEC6-826C-4477-B8F7-EADE2D944B74}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Hangfire.Console", "src\Hangfire.Console\Hangfire.Console.xproj", "{C18CBFCC-955B-4B21-B698-851CC56364AF}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Hangfire.Console.Tests", "tests\Hangfire.Console.Tests\Hangfire.Console.Tests.xproj", "{D5068E09-A43C-4B05-8068-C50E9497EB25}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C18CBFCC-955B-4B21-B698-851CC56364AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C18CBFCC-955B-4B21-B698-851CC56364AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C18CBFCC-955B-4B21-B698-851CC56364AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C18CBFCC-955B-4B21-B698-851CC56364AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5068E09-A43C-4B05-8068-C50E9497EB25}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5068E09-A43C-4B05-8068-C50E9497EB25}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5068E09-A43C-4B05-8068-C50E9497EB25}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5068E09-A43C-4B05-8068-C50E9497EB25}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C18CBFCC-955B-4B21-B698-851CC56364AF} = {436BABB0-DBF7-4301-BC7F-CBB9D09FAD36}
+		{D5068E09-A43C-4B05-8068-C50E9497EB25} = {CBD2EEC6-826C-4477-B8F7-EADE2D944B74}
+	EndGlobalSection
+EndGlobal

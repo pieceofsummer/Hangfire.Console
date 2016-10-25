@@ -1,0 +1,33 @@
+﻿{
+  "version": "1.0.0-*",
+  "title": "Hangfire.Console",
+  "description": "Job console for Hangfire",
+  "authors": [ "Alexey Skalozub" ],
+
+  "packOptions": {
+    "summary": "Job console extension for Hangfire",
+    "tags": [ "hangfire", "console", "logging" ],
+    "owners": [ "Alexey Skalozub" ],
+    "releaseNotes": "Initial release", 
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/pieceofsummer/Hangfire.Console"
+    }
+  },
+
+  "buildOptions": {
+    "warningsAsErrors": true,
+    "xmlDoc": true,
+
+    "embed": [ "Resources/*" ]
+  },
+
+  "dependencies": {
+    "Hangfire.Core": "1.6.6"
+  },
+
+  "frameworks": {
+    "netstandard1.3": {},
+    "net45": {}
+  }
+}

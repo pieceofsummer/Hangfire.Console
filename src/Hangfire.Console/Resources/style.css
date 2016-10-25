@@ -1,0 +1,66 @@
+.console-area {
+    padding: 0;
+    margin: 0 -10px;
+}
+
+.console {
+    font-family: Consolas, Menlo, Monaco, Lucida Console, Liberation Mono, monospace;
+    padding: 10px;
+    border: none;
+    margin: 10px 0 0 0;
+
+    background-color: #0d3163;
+    color: #fff;
+}
+
+.console:empty {
+    display: none;
+}
+
+.console .line {
+    margin: 0;
+    line-height: 1.4em;
+    min-height: 1.4em;
+    font-size: 0.85em;
+    word-break: break-word;
+    white-space: pre-wrap;
+    vertical-align: top;
+}
+
+.console .line > span[data-moment-title] {
+    display: none; /* timestamp is hidden in compact view */
+}
+
+@media only screen {
+
+    .console.active .line:last-child:after {
+        display: inline-block;
+        content: url(data:image/gif;base64,R0lGODlhEAAFAPUAAA4yZP///w8zZBQ3aCJDcDlXf152l3SIpYydtaOxxKSyxPDy9fv8/f7+/g0xYw4yY4WXsOfq7w8yZBQ3Zxk7ayBBbytLdjRSfFVvkml/nmqAn2+Fon6RrJSkupWlu5qpvtne5uTn7fn6+xI1Zhg6ah0+bR4/bidHdDBOeUxnjE1njF51l2F4mWV8m3GGo3OIpHiMqISWr4uctMHK18vS3c3U387V3+Lm7AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH/C05FVFNDQVBFMi4wAwEAAAAh/hZDcm9wcGVkIHdpdGggZXpnaWYuY29tACH5BAQUAP8ALAAAAAAQAAUAAAQZ0AHhqr2WIFWwdwcTJMB3GUuDmNdgHARrRQAh+QQFFAACACwAAAAACgAFAAAGKkCBQCIUAgCCCsdzEVo+H0smFOk8BJBAAIIBRTjCjUi0mWAyFSFFo6EEAQAh+QQFFAAOACwAAAAAEAAFAAAGPUDH4+EoGo8CgKPkgqCKJ5nsVCwoEIQVzRYrwiIRmAOQCDBeqVnNVWzdbq0iorEwjFQrU5HEYpGKBAcGA0EAOw==);
+        vertical-align: middle;
+        margin-left: 8px;
+    }
+
+}
+
+@media (min-width: 768px) {
+
+    .console .line {
+        margin-left: 180px; /* same as dd */
+    }
+
+    .console .line > span[data-moment-title] {
+        display: inline-block;
+        width: 160px; /* same as dt */
+        margin-left: -160px;
+        padding: 0 20px 0 10px;
+
+        overflow: hidden;
+        text-align: right;
+        text-overflow: ellipsis;
+        vertical-align: top;
+        white-space: pre;
+
+        color: #00aad7;
+    }
+}
+
