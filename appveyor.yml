@@ -1,0 +1,15 @@
+nuget:
+  account_feed: true
+  
+init:
+ - git config --global core.autocrlf true
+
+before_build:
+ - cmd: dotnet restore --no-cache
+
+build_script:
+ - cmd: dotnet build src/Hangfire.Console --configuration Release --version-suffix %APPVEYOR_BUILD_VERSION%
+ - cmd: dotnet build tests/Hangfire.Console.Tests --configuration Release
+
+test_script:
+ - cmd: dotnet test tests/Hangfire.Console.Tests
