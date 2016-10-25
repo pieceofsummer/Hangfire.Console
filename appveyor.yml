@@ -1,6 +1,18 @@
+version: 1.0.0-{build}
+
+os: Visual Studio 2015
+
 nuget:
   account_feed: true
   
+branches:
+  only:
+    - master
+    - dev
+
+pull_requests:
+  do_not_increment_build_number: true
+
 init:
  - git config --global core.autocrlf true
 
@@ -8,9 +20,12 @@ before_build:
  - cmd: dotnet restore --no-cache
 
 build_script:
- - cmd: echo Version %APPVEYOR_BUILD_VERSION%
- - cmd: dotnet build src/Hangfire.Console --configuration Release --version-suffix %APPVEYOR_BUILD_VERSION%
- - cmd: dotnet build tests/Hangfire.Console.Tests --configuration Release --version-suffix %APPVEYOR_BUILD_VERSION%
+ - ps: 
+ - cmd: dotnet build src/Hangfire.Console --configuration Release --version-suffix %APPVEYOR_BUILD_NUMBER%
+ - cmd: dotnet build tests/Hangfire.Console.Tests --configuration Release --version-suffix %APPVEYOR_BUILD_NUMBER%
+
+after_build:
+ - cmd: dotnet pack src/Hangfire.Console --configuration Release --version-suffix %APPVEYOR_BUILD_NUMBER%
 
 test_script:
  - cmd: dotnet test tests/Hangfire.Console.Tests
