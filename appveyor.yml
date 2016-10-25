@@ -8,7 +8,7 @@ before_build:
  - cmd: dotnet restore --no-cache
 
 build_script:
- - cmd: echo Version suffix: %APPVEYOR_BUILD_VERSION%
+ - cmd: echo Version %APPVEYOR_BUILD_VERSION%
  - cmd: dotnet build src/Hangfire.Console --configuration Release --version-suffix %APPVEYOR_BUILD_VERSION%
  - cmd: dotnet build tests/Hangfire.Console.Tests --configuration Release --version-suffix %APPVEYOR_BUILD_VERSION%
 
