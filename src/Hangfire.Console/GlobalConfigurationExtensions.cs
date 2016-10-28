@@ -36,6 +36,7 @@ namespace Hangfire.Console
 
             // register additional dispatchers for CSS and JS
             var assembly = typeof(ConsoleRenderer).GetTypeInfo().Assembly;
+            DashboardRoutes.Routes.Append("/js[0-9]{3}", new EmbeddedResourceDispatcher(assembly, "Hangfire.Console.Resources.resize.min.js"));
             DashboardRoutes.Routes.Append("/js[0-9]{3}", new EmbeddedResourceDispatcher(assembly, "Hangfire.Console.Resources.script.js"));
             DashboardRoutes.Routes.Append("/css[0-9]{3}", new EmbeddedResourceDispatcher(assembly, "Hangfire.Console.Resources.style.css"));
             

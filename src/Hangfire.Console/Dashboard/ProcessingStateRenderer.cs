@@ -70,7 +70,9 @@ namespace Hangfire.Console.Dashboard
                 var consoleId = new ConsoleId(jobId, startedAt);
 
                 builder.Append("<div class=\"console-area\">");
-                ConsoleRenderer.RenderConsole(builder, page.Storage, consoleId, 0);
+                builder.AppendFormat("<div class=\"console\" data-id=\"{0}\">", consoleId);
+                ConsoleRenderer.RenderLineBuffer(builder, page.Storage, consoleId, 0);
+                builder.Append("</div>");
                 builder.Append("</div>");
             }
 

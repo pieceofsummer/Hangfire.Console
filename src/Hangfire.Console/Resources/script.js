@@ -1,68 +1,158 @@
 (function (hangfire) {
-    hangfire.Console = (function () {
-        function Console (el) {
-            this._el = el;
-            this._id = el.data('id');
-            this._n = parseInt(el.data('n')) || 0;
+
+    hangfire.LineBuffer = (function () {
+        function updateMoments(container) {
+            $(".line span[data-moment-title]:not([title])", container).each(function () {
+                var $this = $(this),
+                    time = moment($this.data('moment-title'), 'X');
+                $this.prop('title', time.format('llll'))
+                     .attr('data-container', 'body');
+            });
         }
 
-        Console.prototype._load = function (start, replace) {
-            if (start < 0) return true;
+        function LineBuffer(el) {
+            if (!el || el.length !== 1)
+                throw new Error("LineBuffer expects jQuery object with a single value");
 
-            var url = hangfire.config && hangfire.config.pollUrl;
-            if (!url) return false;
+            this._el = el;
+            this._n = parseInt(el.data('n')) || 0;
+            updateMoments(el);
+        }
 
-            url = url.replace(/\/stats$/, "/console/" + this._id);
+        LineBuffer.prototype.replaceWith = function (other) {
+            if (!(other instanceof LineBuffer))
+                throw new Error("LineBuffer.replaceWith() expects LineBuffer argument");
 
-            var $this = this;
-            return $.get(url, { start: start }, function (data) {
-                var $data = $(data);
-                $this._n = parseInt($data.data('n'));
+            this._el.replaceWith(other._el);
 
-                // add lines
-                if (replace) $this._el.empty();
-                $this._el.append($(".line", $data));
+            this._n = other._n;
+            this._el = other._el;
 
-                // set tooltips on new lines
-                $(".line span[data-moment-title]:not([title])", $this._el).each(function () {
-                    var $this = $(this),
-                        time = moment($this.data('moment-title'), 'X');
-                    $this.prop('title', time.format('llll'))
-                         .attr('data-container', 'body');
-                }).tooltip();
-            }, "html");
+            $(".line span[data-moment-title]", this._el).tooltip();
+        };
+
+        LineBuffer.prototype.append = function (other) {
+            if (!other) return;
+
+            if (!(other instanceof LineBuffer))
+                throw new Error("LineBuffer.append() expects LineBuffer argument");
+
+            $(".line", other._el).addClass("new").appendTo(this._el);
+
+            this._n = other._n;
+
+            $(".line span[data-moment-title]", this._el).tooltip();
+        };
+
+        LineBuffer.prototype.next = function () {
+            return this._n;
+        };
+
+        LineBuffer.prototype.unmarkNew = function () {
+            $(".line.new", this._el).removeClass("new");
+        };
+
+        LineBuffer.prototype.getHTMLElement = function () {
+            return this._el[0];
+        };
+
+        return LineBuffer;
+    })();
+
+    hangfire.Console = (function () {
+        function Console(el) {
+            if (!el || el.length !== 1)
+                throw new Error("Console expects jQuery object with a single value");
+
+            this._el = el;
+            this._id = el.data('id');
+            this._buffer = new hangfire.LineBuffer($(".line-buffer", el));
+            this._polling = false;
         }
 
         Console.prototype.reload = function () {
-            this._load(0, true);
+            var url = hangfire.config && hangfire.config.pollUrl;
+            if (!url) return;
+
+            url = url.replace(/\/stats$/, "/console/" + this._id);
+            var self = this;
+
+            $.get(url, null, function (data) {
+                self._buffer.replaceWith(new hangfire.LineBuffer($(data)));
+            }, "html");
+        }
+
+        function resizeHandler(e) {
+            var obj = e.target || e.srcElement,
+                $buffer = $(obj).closest(".line-buffer"),
+                $console = $buffer.closest(".console");
+
+            $console.height($buffer.outerHeight(false));
         }
 
         Console.prototype.poll = function () {
-            if (this._timerId) return;
+            if (this._polling) return;
 
-            if (this._n < 0) {
-                this._el.removeClass('active');
+            if (this._buffer.next() < 0) return;
+
+            var self = this;
+
+            this._polling = true;
+            this._el.addClass('active');
+
+            resizeHandler( { target: this._buffer.getHTMLElement() } );
+            window.addResizeListener(this._buffer.getHTMLElement(), resizeHandler);
+
+            console.log("polling was started");
+
+            var interval = hangfire.config.pollInterval || 1000;
+            setTimeout(function () { self._poll(); }, interval);
+        }
+
+        Console.prototype._poll = function () {
+            this._buffer.unmarkNew();
+
+            var next = this._buffer.next();
+            if (next < 0) {
+                this._endPoll();
+
+                if (next == -1) {
+                    console.log("job state change detected");
+                    location.reload();
+                }
+
                 return;
             }
 
-            var interval = 1000;
+            var url = hangfire.config && hangfire.config.pollUrl;
+            if (!url) {
+                this._endPoll();
 
-            var $this = this;
+                console.error("poll url not configured");
+                return;
+            }
 
-            this._el.addClass('active');
-            this._timerId = setInterval(function () {
-                if (!$this._load($this._n, false) || $this._n < 0) {
-                    $this._el.removeClass('active');
-                    clearInterval($this._timerId);
-                    $this._timerId = null;
+            url = url.replace(/\/stats$/, "/console/" + this._id);
+            var self = this;
 
-                    if ($this._n === -1) {
-                        // job has changed its state (but still exists)
-                        location.reload();
-                    }
-                }
-            }, interval);
+            $.get(url, { start: next }, function (data) {
+                self._buffer.append(new hangfire.LineBuffer($(data)));
+            }, "html")
+
+            .always(function () {
+                var interval = hangfire.config.pollInterval || 1000;
+                setTimeout(function () { self._poll(); }, interval);
+            });
         }
+
+        Console.prototype._endPoll = function () {
+            console.log("polling was terminated");
+
+            window.removeResizeListener(this._buffer.getHTMLElement(), resizeHandler);
+
+            this._el.removeClass('active');
+            this._polling = false;
+        };
 
         return Console;
     })();

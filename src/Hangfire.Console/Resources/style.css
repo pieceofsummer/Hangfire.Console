@@ -1,54 +1,68 @@
 .console-area {
     padding: 0;
-    margin: 0 -10px;
+    margin: 5px -10px 0 -10px;
 }
 
 .console {
-    font-family: Consolas, Menlo, Monaco, Lucida Console, Liberation Mono, monospace;
-    padding: 10px;
-    border: none;
-    margin: 10px 0 0 0;
-
     background-color: #0d3163;
+
+    margin: 0;
+    border: none;
+    padding: 0;
+
+    font-family: Consolas, Menlo, Monaco, Lucida Console, Liberation Mono, monospace;
     color: #fff;
+
+    overflow-x: hidden;
+    overflow-y: hidden; /* may be changed to 'auto' for fixed-height console */
 }
 
-.console:empty {
+.console .line-buffer {
+    margin: 0;
+    border: none;
+    padding: 10px;
+    overflow: hidden;
+}
+
+.console .line-buffer:empty {
     display: none;
 }
 
-.console .line {
+.console .line-buffer .line {
     margin: 0;
     line-height: 1.4em;
     min-height: 1.4em;
     font-size: 0.85em;
     word-break: break-word;
+    overflow-wrap: break-word;
     white-space: pre-wrap;
     vertical-align: top;
 }
 
-.console .line > span[data-moment-title] {
+.console .line-buffer .line > span[data-moment-title] {
     display: none; /* timestamp is hidden in compact view */
 }
 
 @media only screen {
 
-    .console.active .line:last-child:after {
+    /* TODO: fix conflict with resize.js */
+    .console.active .line-buffer :last-child.line:after {
         display: inline-block;
         content: url(data:image/gif;base64,R0lGODlhEAAFAPUAAA4yZP///w8zZBQ3aCJDcDlXf152l3SIpYydtaOxxKSyxPDy9fv8/f7+/g0xYw4yY4WXsOfq7w8yZBQ3Zxk7ayBBbytLdjRSfFVvkml/nmqAn2+Fon6RrJSkupWlu5qpvtne5uTn7fn6+xI1Zhg6ah0+bR4/bidHdDBOeUxnjE1njF51l2F4mWV8m3GGo3OIpHiMqISWr4uctMHK18vS3c3U387V3+Lm7AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH/C05FVFNDQVBFMi4wAwEAAAAh/hZDcm9wcGVkIHdpdGggZXpnaWYuY29tACH5BAQUAP8ALAAAAAAQAAUAAAQZ0AHhqr2WIFWwdwcTJMB3GUuDmNdgHARrRQAh+QQFFAACACwAAAAACgAFAAAGKkCBQCIUAgCCCsdzEVo+H0smFOk8BJBAAIIBRTjCjUi0mWAyFSFFo6EEAQAh+QQFFAAOACwAAAAAEAAFAAAGPUDH4+EoGo8CgKPkgqCKJ5nsVCwoEIQVzRYrwiIRmAOQCDBeqVnNVWzdbq0iorEwjFQrU5HEYpGKBAcGA0EAOw==);
-        vertical-align: middle;
+        vertical-align: bottom;
         margin-left: 8px;
+        margin-bottom: -1px;
     }
 
 }
 
 @media (min-width: 768px) {
 
-    .console .line {
+    .console .line-buffer .line {
         margin-left: 180px; /* same as dd */
     }
 
-    .console .line > span[data-moment-title] {
+    .console .line-buffer .line > span[data-moment-title] {
         display: inline-block;
         width: 160px; /* same as dt */
         margin-left: -160px;
@@ -64,3 +78,24 @@
     }
 }
 
+/* Optional CSS3 bells and whistles */
+
+.console.active {
+    -webkit-transition: height .3s ease-out;
+    -moz-transition: height .3s ease-out;
+    -o-transition: height .3s ease-out;
+    transition: height .3s ease-out;
+}
+
+.console.active .line-buffer .line.new {
+    opacity: 0;
+    animation: fadeIn 0.4s ease-out forwards;
+
+    /* IE9 knows opacity (but not animation), and hides the line. 
+       As a workaround, override this with IE-specific attribute. */
+    filter: alpha(opacity=100);
+}
+
+@keyframes fadeIn {
+    to { opacity: 1; }
+}

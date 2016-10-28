@@ -65,13 +65,13 @@ namespace Hangfire.Console.Dashboard
         }
         
         /// <summary>
-        /// Fetches and renders console contents to a buffer.
+        /// Fetches and renders console line buffer.
         /// </summary>
         /// <param name="builder">Buffer</param>
         /// <param name="storage">Job storage</param>
         /// <param name="consoleId">Console identifier</param>
         /// <param name="start">Offset to read lines from</param>
-        public static void RenderConsole(StringBuilder builder, JobStorage storage, ConsoleId consoleId, int start)
+        public static void RenderLineBuffer(StringBuilder builder, JobStorage storage, ConsoleId consoleId, int start)
         {
             if (builder == null)
                 throw new ArgumentNullException(nameof(builder));
@@ -82,7 +82,7 @@ namespace Hangfire.Console.Dashboard
 
             var items = ReadLines(storage, consoleId, ref start);
 
-            builder.AppendFormat("<div class=\"console\" data-id=\"{0}\" data-n=\"{1}\">", consoleId, start);
+            builder.AppendFormat("<div class=\"line-buffer\" data-n=\"{1}\">", consoleId, start);
             RenderLines(builder, items, consoleId.DateValue);
             builder.Append("</div>");
         }
