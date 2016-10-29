@@ -9,7 +9,8 @@
     "summary": "Job console for Hangfire",
     "tags": [ "hangfire", "console", "logging" ],
     "owners": [ "Alexey Skalozub" ],
-    "releaseNotes": "- More configuration options\n- Fix occasional duplicate lines collapsing", 
+    "iconUrl": "https://raw.githubusercontent.com/pieceofsummer/Hangfire.Console/master/hangfire.console.png",
+    "releaseNotes": "- More configuration options\n- Fix occasional duplicate lines collapsing",
     "repository": {
       "type": "git",
       "url": "https://github.com/pieceofsummer/Hangfire.Console"
