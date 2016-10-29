@@ -48,7 +48,7 @@ hence you'll need to add it as a job argument.
 Now you can write to console:
 
 ```c#
-public void TastMethod(PerformContext context)
+public void TaskMethod(PerformContext context)
 {
     context.WriteLine("Hello, world!");
 }
@@ -57,7 +57,7 @@ public void TastMethod(PerformContext context)
 Like with `System.Console`, you can specify text color for your messages:
 
 ```c#
-public void TastMethod(PerformContext context)
+public void TaskMethod(PerformContext context)
 {
     context.SetTextColor(ConsoleTextColor.Red);
     context.WriteLine("Error!");
