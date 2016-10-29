@@ -35,10 +35,19 @@ GlobalConfiguration.Configuration
     .UseConsole();
 ```
 
-As usual, you may provide additional options for `UseConsole()` method.
-
 **NOTE**: If you have Dashboard and Server running separately, 
 you'll need to call `UseConsole()` on both.
+
+### Additional options
+
+As usual, you may provide additional options for `UseConsole()` method.
+
+Here's what you can configure:
+- **ExpireIn** – time to keep console sessions (default: 24 hours)
+- **PollInterval** – poll interval for live updates, ms (default: 1000)
+- **BackgroundColor** – console background color (default: #0d3163)
+- **TextColor** – console default text color (default: #ffffff)
+- **TimestampColor** – timestamp text color (default: #00aad7)
 
 ## Log
 
@@ -65,4 +74,3 @@ public void TaskMethod(PerformContext context)
 }
 ```
 
-Unless specified otherwise, console sessions will expire in 24 hours.
