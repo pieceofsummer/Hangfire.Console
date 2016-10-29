@@ -37,11 +37,27 @@
             if (!(other instanceof LineBuffer))
                 throw new Error("LineBuffer.append() expects LineBuffer argument");
 
-            $(".line", other._el).addClass("new").appendTo(this._el);
+            var el = this._el;
+
+            $(".line.pb", other._el).each(function () {
+                var $this = $(this),
+                    $id = $this.data('id');
+
+                var pv = $(".line.pb[data-id='" + $id + "'] .pv", el);
+                if (pv.length === 0) return;
+
+                var $pv = $(".pv", $this);
+
+                pv.attr("style", $pv.attr("style"))
+                  .attr("data-value", $pv.attr("data-value"));
+                $this.addClass("ignore");
+            });
+
+            $(".line:not(.ignore)", other._el).addClass("new").appendTo(el);
 
             this._n = other._n;
 
-            $(".line span[data-moment-title]", this._el).tooltip();
+            $(".line span[data-moment-title]", el).tooltip();
         };
 
         LineBuffer.prototype.next = function () {

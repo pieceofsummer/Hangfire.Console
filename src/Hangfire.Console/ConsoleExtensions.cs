@@ -1,4 +1,5 @@
 ﻿using Hangfire.Common;
+using Hangfire.Console.Progress;
 using Hangfire.Console.Serialization;
 using Hangfire.Server;
 using System;
@@ -10,6 +11,38 @@ namespace Hangfire.Console
     /// </summary>
     public static class ConsoleExtensions
     {
+        /// <summary>
+        /// Adds a line for specified console
+        /// </summary>
+        /// <param name="context">Context</param>
+        /// <param name="consoleId">Console identifier</param>
+        /// <param name="line">Line</param>
+        internal static void AddLine(this PerformContext context, ConsoleId consoleId, ConsoleLine line)
+        {
+            line.TimeOffset = Math.Round((DateTime.UtcNow - consoleId.DateValue).TotalSeconds, 3);
+
+            // prevent duplicate lines collapsing
+
+            if (context.Items.ContainsKey("ConsoleLastOffset"))
+            {
+                var lastOffset = (double)context.Items["ConsoleLastOffset"];
+                if (lastOffset >= line.TimeOffset)
+                {
+                    line.TimeOffset = lastOffset + 0.0001;
+                }
+            }
+
+            context.Items["ConsoleLastOffset"] = line.TimeOffset;
+
+            // actual write
+
+            using (var tran = context.Connection.CreateWriteTransaction())
+            {
+                tran.AddToSet(consoleId.ToString(), JobHelper.ToJson(line));
+                tran.Commit();
+            }
+        }
+        
         /// <summary>
         /// Sets text color for next console lines.
         /// </summary>
@@ -39,6 +72,48 @@ namespace Hangfire.Console
         }
         
         /// <summary>
+        /// Returns text color for next console lines.
+        /// </summary>
+        /// <param name="context">Context</param>
+        internal static ConsoleTextColor GetTextColor(this PerformContext context)
+        {
+            if (!context.Items.ContainsKey("ConsoleTextColor"))
+            {
+                // no color specified
+                return null;
+            }
+
+            return context.Items["ConsoleTextColor"] as ConsoleTextColor;
+        }
+
+        /// <summary>
+        /// Adds an updateable progress bar to console.
+        /// </summary>
+        /// <param name="context">Context</param>
+        /// <param name="value">Initial value</param>
+        /// <param name="color">Progress bar color</param>
+        public static IProgressBar WriteProgressBar(this PerformContext context, int value = 0, ConsoleTextColor color = null)
+        {
+            if (context == null)
+                throw new ArgumentNullException(nameof(context));
+            
+            if (!context.Items.ContainsKey("ConsoleId"))
+            {
+                // Absence of ConsoleId means ConsoleServerFilter was not properly added
+                return new NoOpProgressBar();
+            }
+
+            var consoleId = (ConsoleId)context.Items["ConsoleId"];
+
+            var progressBar = new DefaultProgressBar(context, consoleId, color);
+
+            // set initial value
+            progressBar.SetValue(value);
+
+            return progressBar;
+        }
+
+        /// <summary>
         /// Adds a string to console.
         /// </summary>
         /// <param name="context">Context</param>
@@ -56,31 +131,9 @@ namespace Hangfire.Console
             
             var consoleId = (ConsoleId)context.Items["ConsoleId"];
 
-            var line = new ConsoleLine();
-            line.TimeOffset = Math.Round((DateTime.UtcNow - consoleId.DateValue).TotalSeconds, 3);
-            line.Message = value ?? "";
-
-            // prevent duplicate lines collapsing
-            if (context.Items.ContainsKey("ConsoleLastOffset"))
-            {
-                var lastOffset = (double)context.Items["ConsoleLastOffset"];
-                if (lastOffset >= line.TimeOffset)
-                {
-                    line.TimeOffset = lastOffset + 0.0001;
-                }
-            }
-            context.Items["ConsoleLastOffset"] = line.TimeOffset;
-
-            if (context.Items.ContainsKey("ConsoleTextColor"))
-            {
-                line.TextColor = context.Items["ConsoleTextColor"].ToString();
-            }
-
-            using (var tran = context.Connection.CreateWriteTransaction())
-            {
-                tran.AddToSet(consoleId.ToString(), JobHelper.ToJson(line));
-                tran.Commit();
-            }
+            var line = new ConsoleLine() { Message = value ?? "", TextColor = context.GetTextColor() };
+            
+            context.AddLine(consoleId, line);
         }
 
         /// <summary>

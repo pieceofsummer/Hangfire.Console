@@ -28,11 +28,15 @@ namespace Hangfire.Console.Dashboard
                    .Append("    background-color: ").Append(_options.BackgroundColor).AppendLine(";")
                    .Append("    color: ").Append(_options.TextColor).AppendLine(";")
                    .AppendLine("}");
-            
-            builder.AppendLine(".console .line-buffer .line > span[data-moment-title] {")
+
+            builder.AppendLine(".console .line > span[data-moment-title] {")
                    .Append("    color: ").Append(_options.TimestampColor).AppendLine(";")
                    .AppendLine("}");
 
+            builder.AppendLine(".console .line.pb > .pv:before {")
+                   .Append("    color: ").Append(_options.BackgroundColor).AppendLine(";")
+                   .AppendLine("}");
+            
             return context.Response.WriteAsync(builder.ToString());
         }
     }

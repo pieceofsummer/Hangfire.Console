@@ -10,7 +10,17 @@ namespace Hangfire.Console.Serialization
         [JsonProperty("s", Required = Required.Always)]
         public string Message { get; set; }
 
+        [JsonIgnore]
+        private string _textColor;
+
         [JsonProperty("c", DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public string TextColor { get; set; }
+        public string TextColor
+        {
+            get { return _textColor; }
+            set { _textColor = string.IsNullOrEmpty(value) ? null : value; }
+        }
+
+        [JsonProperty("p", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public int? ProgressValue { get; set; }
     }
 }

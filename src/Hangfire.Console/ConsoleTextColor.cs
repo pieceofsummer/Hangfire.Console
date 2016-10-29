@@ -97,5 +97,10 @@
         {
             return _color;
         }
+
+        /// <summary>
+        /// Implicitly converts <see cref="ConsoleTextColor"/> to <see cref="string"/>.
+        /// </summary>
+        public static implicit operator string(ConsoleTextColor color) => color?._color;
     }
 }

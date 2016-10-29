@@ -28,7 +28,7 @@
     display: none;
 }
 
-.console .line-buffer .line {
+.console .line {
     margin: 0;
     line-height: 1.4em;
     min-height: 1.4em;
@@ -39,18 +39,38 @@
     vertical-align: top;
 }
 
-.console .line-buffer .line > span[data-moment-title] {
+.console .line > span[data-moment-title] {
     display: none; /* timestamp is hidden in compact view */
     color: #00aad7;
 }
 
+.console .line.pb {
+    border: 1px solid currentColor;
+    border-radius: 2px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+
+.console .line.pb > .pv {
+    background-color: currentColor;
+    display: inline-block;
+    min-width: 2em;
+    text-align: center;
+    transition: width .6s ease;
+}
+
+.console .line.pb > .pv:before {
+    content: attr(data-value) '%';
+    color: #0d3163;
+}
+
 @media (min-width: 768px) {
 
-    .console .line-buffer .line {
+    .console .line {
         margin-left: 180px; /* same as dd */
     }
 
-    .console .line-buffer .line > span[data-moment-title] {
+    .console .line > span[data-moment-title] {
         display: inline-block;
         width: 160px; /* same as dt */
         margin-left: -160px;
@@ -62,6 +82,7 @@
         vertical-align: top;
         white-space: pre;
     }
+
 }
 
 /* Optional CSS3 bells and whistles */
@@ -87,6 +108,7 @@
 }
 
 @media only screen {
+
     .console.active:after {
         content: '...';
         display: block;
@@ -100,15 +122,17 @@
         width: 0;
         animation: loadingDots 1s infinite steps(4);
     }
+
 }
 
 @media only screen and (min-width: 768px) {
+
     .console.active:after {
         margin-left: 190px;
     }
+
 }
 
 @keyframes loadingDots {
-  to { width: auto; }
-  100% { width: 24px; }
+    to { width: 24px; }
 }

@@ -33,16 +33,33 @@ namespace Hangfire.Console.Dashboard
         public static void RenderLine(StringBuilder builder, ConsoleLine line, DateTime timestamp)
         {
             var offset = TimeSpan.FromSeconds(line.TimeOffset);
+            var isProgressBar = line.ProgressValue.HasValue;
 
-            builder.Append("<div class=\"line\"");
+            builder.Append("<div class=\"line").Append(isProgressBar ? " pb" : "").Append("\"");
 
-            if (!string.IsNullOrEmpty(line.TextColor))
-                builder.AppendFormat(" style=\"color:{0}\"", line.TextColor);
+            if (line.TextColor != null)
+            {
+                builder.Append(" style=\"color:").Append(line.TextColor).Append("\"");
+            }
+
+            if (isProgressBar)
+            {
+                builder.Append(" data-id=\"").Append(line.Message).Append("\"");
+            }
 
             builder.Append(">")
-                   .Append(Helper.MomentTitle(timestamp + offset, Helper.ToHumanDuration(offset)))
-                   .Append(Helper.HtmlEncode(line.Message))
-                   .Append("</div>");
+                   .Append(Helper.MomentTitle(timestamp + offset, Helper.ToHumanDuration(offset)));
+
+            if (isProgressBar)
+            {
+                builder.AppendFormat("<div class=\"pv\" style=\"width:{0}%\" data-value=\"{0}\"></div>", line.ProgressValue.Value);
+            }
+            else
+            {
+                builder.Append(Helper.HtmlEncode(line.Message));
+            }
+
+            builder.Append("</div>");
         }
 
         /// <summary>
@@ -110,10 +127,28 @@ namespace Hangfire.Console.Dashboard
                 {
                     // has some new items to fetch
 
+                    var progressBars = new Dictionary<string, ConsoleLine>();
+
                     var items = connection.GetRangeFromSet(consoleId.ToString(), start, count);
                     foreach (var item in items)
                     {
                         var entry = JobHelper.FromJson<ConsoleLine>(item);
+                        
+                        if (entry.ProgressValue.HasValue)
+                        {
+                            // aggregate progress value updates into single record
+
+                            ConsoleLine prev;
+                            if (progressBars.TryGetValue(entry.Message, out prev))
+                            {
+                                prev.ProgressValue = entry.ProgressValue;
+                                prev.TextColor = entry.TextColor;
+                                continue;
+                            }
+
+                            progressBars.Add(entry.Message, entry);
+                        }
+
                         result.Add(entry);
                     }
                 }
