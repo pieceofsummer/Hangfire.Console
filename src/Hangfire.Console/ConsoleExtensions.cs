@@ -57,8 +57,19 @@ namespace Hangfire.Console
             var consoleId = (ConsoleId)context.Items["ConsoleId"];
 
             var line = new ConsoleLine();
-            line.TimeOffset = Math.Round((DateTime.UtcNow - consoleId.DateValue).TotalSeconds, 6);
+            line.TimeOffset = Math.Round((DateTime.UtcNow - consoleId.DateValue).TotalSeconds, 3);
             line.Message = value ?? "";
+
+            // prevent duplicate lines collapsing
+            if (context.Items.ContainsKey("ConsoleLastOffset"))
+            {
+                var lastOffset = (double)context.Items["ConsoleLastOffset"];
+                if (lastOffset >= line.TimeOffset)
+                {
+                    line.TimeOffset = lastOffset + 0.0001;
+                }
+            }
+            context.Items["ConsoleLastOffset"] = line.TimeOffset;
 
             if (context.Items.ContainsKey("ConsoleTextColor"))
             {
