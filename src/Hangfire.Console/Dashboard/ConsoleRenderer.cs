@@ -127,7 +127,7 @@ namespace Hangfire.Console.Dashboard
                 {
                     // has some new items to fetch
 
-                    var progressBars = new Dictionary<string, ConsoleLine>();
+                    Dictionary<string, ConsoleLine> progressBars = null;
 
                     var items = connection.GetRangeFromSet(consoleId.ToString(), start, count);
                     foreach (var item in items)
@@ -138,12 +138,19 @@ namespace Hangfire.Console.Dashboard
                         {
                             // aggregate progress value updates into single record
 
-                            ConsoleLine prev;
-                            if (progressBars.TryGetValue(entry.Message, out prev))
+                            if (progressBars != null)
                             {
-                                prev.ProgressValue = entry.ProgressValue;
-                                prev.TextColor = entry.TextColor;
-                                continue;
+                                ConsoleLine prev;
+                                if (progressBars.TryGetValue(entry.Message, out prev))
+                                {
+                                    prev.ProgressValue = entry.ProgressValue;
+                                    prev.TextColor = entry.TextColor;
+                                    continue;
+                                }
+                            }
+                            else
+                            {
+                                progressBars = new Dictionary<string, Serialization.ConsoleLine>();
                             }
 
                             progressBars.Add(entry.Message, entry);
