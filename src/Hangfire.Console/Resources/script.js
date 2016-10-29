@@ -105,6 +105,12 @@
                 $buffer = $(obj).closest(".line-buffer"),
                 $console = $buffer.closest(".console");
 
+            if (0 === $(".line:first", $buffer).length) {
+                // collapse console area if there's no lines
+                $console.height(0);
+                return;
+            }
+
             $console.height($buffer.outerHeight(false));
         }
 
