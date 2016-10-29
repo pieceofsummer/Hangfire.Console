@@ -41,19 +41,7 @@
 
 .console .line-buffer .line > span[data-moment-title] {
     display: none; /* timestamp is hidden in compact view */
-}
-
-@media only screen {
-
-    /* TODO: fix conflict with resize.js */
-    .console.active .line-buffer :last-child.line:after {
-        display: inline-block;
-        content: url(data:image/gif;base64,R0lGODlhEAAFAPUAAA4yZP///w8zZBQ3aCJDcDlXf152l3SIpYydtaOxxKSyxPDy9fv8/f7+/g0xYw4yY4WXsOfq7w8yZBQ3Zxk7ayBBbytLdjRSfFVvkml/nmqAn2+Fon6RrJSkupWlu5qpvtne5uTn7fn6+xI1Zhg6ah0+bR4/bidHdDBOeUxnjE1njF51l2F4mWV8m3GGo3OIpHiMqISWr4uctMHK18vS3c3U387V3+Lm7AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH/C05FVFNDQVBFMi4wAwEAAAAh/hZDcm9wcGVkIHdpdGggZXpnaWYuY29tACH5BAQUAP8ALAAAAAAQAAUAAAQZ0AHhqr2WIFWwdwcTJMB3GUuDmNdgHARrRQAh+QQFFAACACwAAAAACgAFAAAGKkCBQCIUAgCCCsdzEVo+H0smFOk8BJBAAIIBRTjCjUi0mWAyFSFFo6EEAQAh+QQFFAAOACwAAAAAEAAFAAAGPUDH4+EoGo8CgKPkgqCKJ5nsVCwoEIQVzRYrwiIRmAOQCDBeqVnNVWzdbq0iorEwjFQrU5HEYpGKBAcGA0EAOw==);
-        vertical-align: bottom;
-        margin-left: 8px;
-        margin-bottom: -1px;
-    }
-
+    color: #00aad7;
 }
 
 @media (min-width: 768px) {
@@ -73,8 +61,6 @@
         text-overflow: ellipsis;
         vertical-align: top;
         white-space: pre;
-
-        color: #00aad7;
     }
 }
 
@@ -98,4 +84,31 @@
 
 @keyframes fadeIn {
     to { opacity: 1; }
+}
+
+@media only screen {
+    .console.active:after {
+        content: '...';
+        display: block;
+        position: absolute;
+        font-size: 0.8em;
+        text-overflow: clip;
+        overflow: hidden;
+
+        margin-left: 10px;
+        margin-top: -16px;
+        width: 0;
+        animation: loadingDots 1s infinite steps(4);
+    }
+}
+
+@media only screen and (min-width: 768px) {
+    .console.active:after {
+        margin-left: 190px;
+    }
+}
+
+@keyframes loadingDots {
+  to { width: auto; }
+  100% { width: 24px; }
 }

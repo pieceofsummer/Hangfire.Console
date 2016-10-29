@@ -60,6 +60,12 @@
     })();
 
     hangfire.Console = (function () {
+
+        var pollUrl = hangfire.config.consolePollUrl;
+        var pollInterval = hangfire.config.consolePollInterval;
+        if (!pollUrl || !pollInterval)
+            throw new Error("Hangfire.Console was not properly configured");
+
         function Console(el) {
             if (!el || el.length !== 1)
                 throw new Error("Console expects jQuery object with a single value");
@@ -71,13 +77,9 @@
         }
 
         Console.prototype.reload = function () {
-            var url = hangfire.config && hangfire.config.pollUrl;
-            if (!url) return;
-
-            url = url.replace(/\/stats$/, "/console/" + this._id);
             var self = this;
 
-            $.get(url, null, function (data) {
+            $.get(pollUrl + this._id, null, function (data) {
                 self._buffer.replaceWith(new hangfire.LineBuffer($(data)));
             }, "html");
         }
@@ -105,8 +107,7 @@
 
             console.log("polling was started");
 
-            var interval = hangfire.config.pollInterval || 1000;
-            setTimeout(function () { self._poll(); }, interval);
+            setTimeout(function () { self._poll(); }, pollInterval);
         }
 
         Console.prototype._poll = function () {
@@ -124,24 +125,14 @@
                 return;
             }
 
-            var url = hangfire.config && hangfire.config.pollUrl;
-            if (!url) {
-                this._endPoll();
-
-                console.error("poll url not configured");
-                return;
-            }
-
-            url = url.replace(/\/stats$/, "/console/" + this._id);
             var self = this;
 
-            $.get(url, { start: next }, function (data) {
+            $.get(pollUrl + this._id, { start: next }, function (data) {
                 self._buffer.append(new hangfire.LineBuffer($(data)));
             }, "html")
 
             .always(function () {
-                var interval = hangfire.config.pollInterval || 1000;
-                setTimeout(function () { self._poll(); }, interval);
+                setTimeout(function () { self._poll(); }, pollInterval);
             });
         }
 

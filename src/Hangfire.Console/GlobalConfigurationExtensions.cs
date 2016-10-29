@@ -25,6 +25,8 @@ namespace Hangfire.Console
 
             options = options ?? new ConsoleOptions();
 
+            options.Validate(nameof(options));
+
             // register server filter for jobs
             GlobalJobFilters.Filters.Add(new ConsoleServerFilter(options));
 
@@ -33,12 +35,14 @@ namespace Hangfire.Console
 
             // register dispatcher to serve console updates
             DashboardRoutes.Routes.Add("/console/([0-9a-f]{11}.+)", new ConsoleDispatcher(options));
-
+            
             // register additional dispatchers for CSS and JS
             var assembly = typeof(ConsoleRenderer).GetTypeInfo().Assembly;
             DashboardRoutes.Routes.Append("/js[0-9]{3}", new EmbeddedResourceDispatcher(assembly, "Hangfire.Console.Resources.resize.min.js"));
+            DashboardRoutes.Routes.Append("/js[0-9]{3}", new DynamicJsDispatcher(options));
             DashboardRoutes.Routes.Append("/js[0-9]{3}", new EmbeddedResourceDispatcher(assembly, "Hangfire.Console.Resources.script.js"));
             DashboardRoutes.Routes.Append("/css[0-9]{3}", new EmbeddedResourceDispatcher(assembly, "Hangfire.Console.Resources.style.css"));
+            DashboardRoutes.Routes.Append("/css[0-9]{3}", new DynamicCssDispatcher(options));
             
             return configuration;
         }

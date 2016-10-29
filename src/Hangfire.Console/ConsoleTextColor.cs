@@ -6,6 +6,11 @@
     public class ConsoleTextColor
     {
         /// <summary>
+        /// The color black.
+        /// </summary>
+        public static readonly ConsoleTextColor Black = new ConsoleTextColor("#000000");
+
+        /// <summary>
         /// The color dark blue.
         /// </summary>
         public static readonly ConsoleTextColor DarkBlue = new ConsoleTextColor("#000080");
