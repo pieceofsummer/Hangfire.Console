@@ -74,3 +74,21 @@ public void TaskMethod(PerformContext context)
 }
 ```
 
+## Progress bars
+
+Version 1.1.0 adds support for progress bars:
+
+```c#
+public void TaskMethod(PerformContext context)
+{
+    // create progress bar
+    var progress = context.WriteProgressBar();
+    
+    // update value for previously created progress bar
+    progress.SetValue(100);
+}
+```
+
+You can create multiple progress bars and update them separately.
+
+By default, progress bar is initialized with value `0`. You can specify initial value and progress bar color as optional arguments for `WriteProgressBar()`.
