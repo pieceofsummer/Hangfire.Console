@@ -1,5 +1,5 @@
 ﻿{
-  "version": "1.0.1-*",
+  "version": "1.0.2-*",
 
   "title": "Hangfire.Console",
   "description": "Job console for Hangfire",
@@ -9,7 +9,7 @@
     "summary": "Job console for Hangfire",
     "tags": [ "hangfire", "console", "logging" ],
     "owners": [ "Alexey Skalozub" ],
-    "releaseNotes": "Initial release", 
+    "releaseNotes": "- More configuration options\n- Fix occasional duplicate lines collapsing", 
     "repository": {
       "type": "git",
       "url": "https://github.com/pieceofsummer/Hangfire.Console"
