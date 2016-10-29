@@ -76,7 +76,9 @@ public void TaskMethod(PerformContext context)
 
 ## Progress bars
 
-Version 1.1.0 adds support for progress bars:
+Version 1.1.0 adds support for inline progress bars:
+
+![progress](progress.png)
 
 ```c#
 public void TaskMethod(PerformContext context)
