@@ -1,5 +1,6 @@
 ﻿using Hangfire.Common;
 using Hangfire.Console.Serialization;
+using Hangfire.Console.Storage;
 using Hangfire.Dashboard;
 using Hangfire.Dashboard.Extensions;
 using System;
@@ -71,7 +72,12 @@ namespace Hangfire.Console.Dashboard
 
                 builder.Append("<div class=\"console-area\">");
                 builder.AppendFormat("<div class=\"console\" data-id=\"{0}\">", consoleId);
-                ConsoleRenderer.RenderLineBuffer(builder, page.Storage, consoleId, 0);
+
+                using (var data = new ConsoleStorage(page.Storage.GetConnection()))
+                {
+                    ConsoleRenderer.RenderLineBuffer(builder, data, consoleId, 0);
+                }
+
                 builder.Append("</div>");
                 builder.Append("</div>");
             }

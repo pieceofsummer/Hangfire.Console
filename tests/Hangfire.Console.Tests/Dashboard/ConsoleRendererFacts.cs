@@ -1,7 +1,7 @@
 ﻿using Hangfire.Common;
 using Hangfire.Console.Dashboard;
 using Hangfire.Console.Serialization;
-using Hangfire.Console.Tests.Mocks;
+using Hangfire.Console.Storage;
 using Hangfire.States;
 using Hangfire.Storage;
 using Moq;
@@ -15,11 +15,14 @@ namespace Hangfire.Console.Tests.Dashboard
 {
     public class ConsoleRendererFacts
     {
-        private readonly Mock<JobStorage> _storage;
+        private readonly ConsoleId _consoleId;
+        private readonly Mock<IConsoleStorage> _storage;
 
         public ConsoleRendererFacts()
         {
-            _storage = new Mock<JobStorage>();
+            _consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+
+            _storage = new Mock<IConsoleStorage>();
         }
 
         [Fact]
@@ -131,13 +134,13 @@ namespace Hangfire.Console.Tests.Dashboard
         [Fact]
         public void RenderLineBuffer_ThrowsException_IfBuilderIsNull()
         {
-            Assert.Throws<ArgumentNullException>("builder", () => ConsoleRenderer.RenderLineBuffer(null, _storage.Object, new ConsoleId("1", DateTime.UtcNow), 0));
+            Assert.Throws<ArgumentNullException>("builder", () => ConsoleRenderer.RenderLineBuffer(null, _storage.Object, _consoleId, 0));
         }
 
         [Fact]
         public void RenderLineBuffer_ThrowsException_IfStorageIsNull()
         {
-            Assert.Throws<ArgumentNullException>("storage", () => ConsoleRenderer.RenderLineBuffer(new StringBuilder(), null, new ConsoleId("1", DateTime.UtcNow), 0));
+            Assert.Throws<ArgumentNullException>("storage", () => ConsoleRenderer.RenderLineBuffer(new StringBuilder(), null, _consoleId, 0));
         }
 
         [Fact]
@@ -149,16 +152,10 @@ namespace Hangfire.Console.Tests.Dashboard
         [Fact]
         public void RenderLineBuffer_RendersEmpty_WithNegativeN_IfStartIsNegative()
         {
-            var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+            SetupStorage(CreateState(ProcessingState.StateName, _consoleId.DateValue));
 
-            var connection = new MockStorageConnection();
-            connection.StateData = CreateState(ProcessingState.StateName, consoleId.DateValue);
-
-            _storage.Setup(x => x.GetConnection())
-                .Returns(connection);
-            
             var builder = new StringBuilder();
-            ConsoleRenderer.RenderLineBuffer(builder, _storage.Object, consoleId, -1);
+            ConsoleRenderer.RenderLineBuffer(builder, _storage.Object, _consoleId, -1);
 
             Assert.Equal("<div class=\"line-buffer\" data-n=\"-1\"></div>", builder.ToString());
         }
@@ -166,18 +163,12 @@ namespace Hangfire.Console.Tests.Dashboard
         [Fact]
         public void RenderLineBuffer_RendersAllLines_IfStartIsZero()
         {
-            var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
-
-            var connection = new MockStorageConnection();
-            connection.StateData = CreateState(ProcessingState.StateName, consoleId.DateValue);
-            connection.Sets.Add(new MockSetEntry() { Key = consoleId.ToString(), Value = JobHelper.ToJson(new ConsoleLine() { TimeOffset = 0, Message = "line1" }) });
-            connection.Sets.Add(new MockSetEntry() { Key = consoleId.ToString(), Value = JobHelper.ToJson(new ConsoleLine() { TimeOffset = 1, Message = "line2" }) });
-
-            _storage.Setup(x => x.GetConnection())
-                .Returns(connection);
+            SetupStorage(CreateState(ProcessingState.StateName, _consoleId.DateValue),
+                new ConsoleLine() { TimeOffset = 0, Message = "line1" },
+                new ConsoleLine() { TimeOffset = 1, Message = "line2" });
             
             var builder = new StringBuilder();
-            ConsoleRenderer.RenderLineBuffer(builder, _storage.Object, consoleId, 0);
+            ConsoleRenderer.RenderLineBuffer(builder, _storage.Object, _consoleId, 0);
 
             Assert.Equal(
                 "<div class=\"line-buffer\" data-n=\"2\">" +
@@ -189,18 +180,12 @@ namespace Hangfire.Console.Tests.Dashboard
         [Fact]
         public void RenderLineBuffer_RendersLines_FromStartOffset()
         {
-            var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
-
-            var connection = new MockStorageConnection();
-            connection.StateData = CreateState(ProcessingState.StateName, consoleId.DateValue);
-            connection.Sets.Add(new MockSetEntry() { Key = consoleId.ToString(), Value = JobHelper.ToJson(new ConsoleLine() { TimeOffset = 0, Message = "line1" }) });
-            connection.Sets.Add(new MockSetEntry() { Key = consoleId.ToString(), Value = JobHelper.ToJson(new ConsoleLine() { TimeOffset = 1, Message = "line2" }) });
-
-            _storage.Setup(x => x.GetConnection())
-                .Returns(connection);
+            SetupStorage(CreateState(ProcessingState.StateName, _consoleId.DateValue),
+                new ConsoleLine() { TimeOffset = 0, Message = "line1" },
+                new ConsoleLine() { TimeOffset = 1, Message = "line2" });
 
             var builder = new StringBuilder();
-            ConsoleRenderer.RenderLineBuffer(builder, _storage.Object, consoleId, 1);
+            ConsoleRenderer.RenderLineBuffer(builder, _storage.Object, _consoleId, 1);
 
             Assert.Equal(
                 "<div class=\"line-buffer\" data-n=\"2\">" +
@@ -211,18 +196,12 @@ namespace Hangfire.Console.Tests.Dashboard
         [Fact]
         public void RenderLineBuffer_RendersEmpty_WithLineCount_IfNoMoreLines()
         {
-            var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
-
-            var connection = new MockStorageConnection();
-            connection.StateData = CreateState(ProcessingState.StateName, consoleId.DateValue);
-            connection.Sets.Add(new MockSetEntry() { Key = consoleId.ToString(), Value = JobHelper.ToJson(new ConsoleLine() { TimeOffset = 0, Message = "line1" }) });
-            connection.Sets.Add(new MockSetEntry() { Key = consoleId.ToString(), Value = JobHelper.ToJson(new ConsoleLine() { TimeOffset = 1, Message = "line2" }) });
-
-            _storage.Setup(x => x.GetConnection())
-                .Returns(connection);
+            SetupStorage(CreateState(ProcessingState.StateName, _consoleId.DateValue),
+                new ConsoleLine() { TimeOffset = 0, Message = "line1" },
+                new ConsoleLine() { TimeOffset = 1, Message = "line2" });
 
             var builder = new StringBuilder();
-            ConsoleRenderer.RenderLineBuffer(builder, _storage.Object, consoleId, 2);
+            ConsoleRenderer.RenderLineBuffer(builder, _storage.Object, _consoleId, 2);
 
             Assert.Equal("<div class=\"line-buffer\" data-n=\"2\"></div>", builder.ToString());
         }
@@ -230,18 +209,12 @@ namespace Hangfire.Console.Tests.Dashboard
         [Fact]
         public void RenderLineBuffer_RendersEmpty_WithMinusTwo_IfStateNotFound()
         {
-            var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
-
-            var connection = new MockStorageConnection();
-            connection.StateData = null;
-            connection.Sets.Add(new MockSetEntry() { Key = consoleId.ToString(), Value = JobHelper.ToJson(new ConsoleLine() { TimeOffset = 0, Message = "line1" }) });
-            connection.Sets.Add(new MockSetEntry() { Key = consoleId.ToString(), Value = JobHelper.ToJson(new ConsoleLine() { TimeOffset = 1, Message = "line2" }) });
-
-            _storage.Setup(x => x.GetConnection())
-                .Returns(connection);
-
+            SetupStorage(null,
+                new ConsoleLine() { TimeOffset = 0, Message = "line1" },
+                new ConsoleLine() { TimeOffset = 1, Message = "line2" });
+            
             var builder = new StringBuilder();
-            ConsoleRenderer.RenderLineBuffer(builder, _storage.Object, consoleId, 2);
+            ConsoleRenderer.RenderLineBuffer(builder, _storage.Object, _consoleId, 2);
 
             Assert.Equal("<div class=\"line-buffer\" data-n=\"-2\"></div>", builder.ToString());
         }
@@ -249,18 +222,12 @@ namespace Hangfire.Console.Tests.Dashboard
         [Fact]
         public void RenderLineBuffer_RendersEmpty_WithMinusOne_IfStateIsNotProcessing()
         {
-            var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
-
-            var connection = new MockStorageConnection();
-            connection.StateData = CreateState(SucceededState.StateName, consoleId.DateValue);
-            connection.Sets.Add(new MockSetEntry() { Key = consoleId.ToString(), Value = JobHelper.ToJson(new ConsoleLine() { TimeOffset = 0, Message = "line1" }) });
-            connection.Sets.Add(new MockSetEntry() { Key = consoleId.ToString(), Value = JobHelper.ToJson(new ConsoleLine() { TimeOffset = 1, Message = "line2" }) });
-
-            _storage.Setup(x => x.GetConnection())
-                .Returns(connection);
+            SetupStorage(CreateState(SucceededState.StateName, _consoleId.DateValue),
+                new ConsoleLine() { TimeOffset = 0, Message = "line1" },
+                new ConsoleLine() { TimeOffset = 1, Message = "line2" });
 
             var builder = new StringBuilder();
-            ConsoleRenderer.RenderLineBuffer(builder, _storage.Object, consoleId, 2);
+            ConsoleRenderer.RenderLineBuffer(builder, _storage.Object, _consoleId, 2);
 
             Assert.Equal("<div class=\"line-buffer\" data-n=\"-1\"></div>", builder.ToString());
         }
@@ -268,18 +235,12 @@ namespace Hangfire.Console.Tests.Dashboard
         [Fact]
         public void RenderLineBuffer_RendersEmpty_WithMinusOne_IfStateIsAnotherProcessing()
         {
-            var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
-
-            var connection = new MockStorageConnection();
-            connection.StateData = CreateState(ProcessingState.StateName, consoleId.DateValue.AddMinutes(1));
-            connection.Sets.Add(new MockSetEntry() { Key = consoleId.ToString(), Value = JobHelper.ToJson(new ConsoleLine() { TimeOffset = 0, Message = "line1" }) });
-            connection.Sets.Add(new MockSetEntry() { Key = consoleId.ToString(), Value = JobHelper.ToJson(new ConsoleLine() { TimeOffset = 1, Message = "line2" }) });
-
-            _storage.Setup(x => x.GetConnection())
-                .Returns(connection);
+            SetupStorage(CreateState(ProcessingState.StateName, _consoleId.DateValue.AddMinutes(1)),
+                new ConsoleLine() { TimeOffset = 0, Message = "line1" },
+                new ConsoleLine() { TimeOffset = 1, Message = "line2" });
 
             var builder = new StringBuilder();
-            ConsoleRenderer.RenderLineBuffer(builder, _storage.Object, consoleId, 2);
+            ConsoleRenderer.RenderLineBuffer(builder, _storage.Object, _consoleId, 2);
 
             Assert.Equal("<div class=\"line-buffer\" data-n=\"-1\"></div>", builder.ToString());
         }
@@ -287,19 +248,13 @@ namespace Hangfire.Console.Tests.Dashboard
         [Fact]
         public void RenderLineBuffer_AggregatesMultipleProgressLines()
         {
-            var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
-
-            var connection = new MockStorageConnection();
-            connection.StateData = CreateState(ProcessingState.StateName, consoleId.DateValue);
-            connection.Sets.Add(new MockSetEntry() { Key = consoleId.ToString(), Value = JobHelper.ToJson(new ConsoleLine() { TimeOffset = 0, Message = "0", ProgressValue = 1 }) });
-            connection.Sets.Add(new MockSetEntry() { Key = consoleId.ToString(), Value = JobHelper.ToJson(new ConsoleLine() { TimeOffset = 1, Message = "1", ProgressValue = 3 }) });
-            connection.Sets.Add(new MockSetEntry() { Key = consoleId.ToString(), Value = JobHelper.ToJson(new ConsoleLine() { TimeOffset = 2, Message = "0", ProgressValue = 5 }) });
-
-            _storage.Setup(x => x.GetConnection())
-                .Returns(connection);
-
+            SetupStorage(CreateState(ProcessingState.StateName, _consoleId.DateValue),
+                new ConsoleLine() { TimeOffset = 0, Message = "0", ProgressValue = 1 },
+                new ConsoleLine() { TimeOffset = 1, Message = "1", ProgressValue = 3 },
+                new ConsoleLine() { TimeOffset = 2, Message = "0", ProgressValue = 5 });
+            
             var builder = new StringBuilder();
-            ConsoleRenderer.RenderLineBuffer(builder, _storage.Object, consoleId, 0);
+            ConsoleRenderer.RenderLineBuffer(builder, _storage.Object, _consoleId, 0);
 
             Assert.Equal(
                 "<div class=\"line-buffer\" data-n=\"3\">" +
@@ -318,6 +273,16 @@ namespace Hangfire.Console.Tests.Dashboard
                     ["StartedAt"] = JobHelper.SerializeDateTime(startedAt)
                 }
             };
+        }
+
+        private void SetupStorage(StateData stateData, params ConsoleLine[] lines)
+        {
+            _storage.Setup(x => x.GetState(It.IsAny<ConsoleId>()))
+                .Returns(stateData);
+            _storage.Setup(x => x.GetLineCount(It.IsAny<ConsoleId>()))
+                .Returns(lines.Length);
+            _storage.Setup(x => x.GetLines(It.IsAny<ConsoleId>(), It.IsAny<int>(), It.IsAny<int>()))
+                .Returns((ConsoleId id, int start, int end) => lines.Where((x, i) => i >= start && i <= end));
         }
     }
 }

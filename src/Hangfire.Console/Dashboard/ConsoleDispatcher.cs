@@ -1,9 +1,9 @@
 ﻿using Hangfire.Dashboard;
 using System.Threading.Tasks;
-using Hangfire.Annotations;
 using System.Text;
 using Hangfire.Console.Serialization;
 using System;
+using Hangfire.Console.Storage;
 
 namespace Hangfire.Console.Dashboard
 {
@@ -22,7 +22,7 @@ namespace Hangfire.Console.Dashboard
             _options = options;
         }
 
-        public Task Dispatch([NotNull] DashboardContext context)
+        public Task Dispatch(DashboardContext context)
         {
             if (context == null)
                 throw new ArgumentNullException(nameof(context));
@@ -38,10 +38,13 @@ namespace Hangfire.Console.Dashboard
                 // if not provided or invalid, fetch records from the very start
                 start = 0;
             }
-            
+
             var buffer = new StringBuilder();
-            ConsoleRenderer.RenderLineBuffer(buffer, context.Storage, consoleId, start);
-            
+            using (var data = new ConsoleStorage(context.Storage.GetConnection()))
+            {
+                ConsoleRenderer.RenderLineBuffer(buffer, data, consoleId, start);
+            }
+
             context.Response.ContentType = "text/html";
             return context.Response.WriteAsync(buffer.ToString());
         }

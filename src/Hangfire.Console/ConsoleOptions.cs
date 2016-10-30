@@ -41,5 +41,7 @@ namespace Hangfire.Console
             if (PollInterval < 100)
                 throw new ArgumentException("PollInterval shouldn't be less than 100 ms", paramName);
         }
+
+
     }
 }

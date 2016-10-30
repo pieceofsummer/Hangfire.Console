@@ -1,5 +1,6 @@
 ﻿using Hangfire.Common;
 using Hangfire.Console.Serialization;
+using Hangfire.Console.Storage;
 using Hangfire.Dashboard;
 using Hangfire.States;
 using Hangfire.Storage;
@@ -47,8 +48,9 @@ namespace Hangfire.Console.Dashboard
                 builder.Append(" data-id=\"").Append(line.Message).Append("\"");
             }
 
-            builder.Append(">")
-                   .Append(Helper.MomentTitle(timestamp + offset, Helper.ToHumanDuration(offset)));
+            builder.Append(">");
+
+            builder.Append(Helper.MomentTitle(timestamp + offset, Helper.ToHumanDuration(offset)));
 
             if (isProgressBar)
             {
@@ -85,10 +87,10 @@ namespace Hangfire.Console.Dashboard
         /// Fetches and renders console line buffer.
         /// </summary>
         /// <param name="builder">Buffer</param>
-        /// <param name="storage">Job storage</param>
+        /// <param name="storage">Console data accessor</param>
         /// <param name="consoleId">Console identifier</param>
         /// <param name="start">Offset to read lines from</param>
-        public static void RenderLineBuffer(StringBuilder builder, JobStorage storage, ConsoleId consoleId, int start)
+        public static void RenderLineBuffer(StringBuilder builder, IConsoleStorage storage, ConsoleId consoleId, int start)
         {
             if (builder == null)
                 throw new ArgumentNullException(nameof(builder));
@@ -107,83 +109,77 @@ namespace Hangfire.Console.Dashboard
         /// <summary>
         /// Fetches console lines from storage.
         /// </summary>
-        /// <param name="storage">Job storage</param>
+        /// <param name="storage">Console data accessor</param>
         /// <param name="consoleId">Console identifier</param>
         /// <param name="start">Offset to read lines from</param>
         /// <remarks>
         /// On completion, <paramref name="start"/> is set to the end of the current batch, 
         /// and can be used for next requests (or set to -1, if the job has finished processing). 
         /// </remarks>
-        private static IEnumerable<ConsoleLine> ReadLines(JobStorage storage, ConsoleId consoleId, ref int start)
+        private static IEnumerable<ConsoleLine> ReadLines(IConsoleStorage storage, ConsoleId consoleId, ref int start)
         {
             if (start < 0) return null;
 
-            using (var connection = (JobStorageConnection)storage.GetConnection())
+            var count = storage.GetLineCount(consoleId);
+            var result = new List<ConsoleLine>(Math.Max(1, count - start));
+
+            if (count > start)
             {
-                var count = (int)connection.GetSetCount(consoleId.ToString());
-                var result = new List<ConsoleLine>(Math.Max(1, count - start));
+                // has some new items to fetch
 
-                if (count > start)
-                {
-                    // has some new items to fetch
-
-                    Dictionary<string, ConsoleLine> progressBars = null;
-
-                    var items = connection.GetRangeFromSet(consoleId.ToString(), start, count);
-                    foreach (var item in items)
-                    {
-                        var entry = JobHelper.FromJson<ConsoleLine>(item);
-                        
-                        if (entry.ProgressValue.HasValue)
-                        {
-                            // aggregate progress value updates into single record
-
-                            if (progressBars != null)
-                            {
-                                ConsoleLine prev;
-                                if (progressBars.TryGetValue(entry.Message, out prev))
-                                {
-                                    prev.ProgressValue = entry.ProgressValue;
-                                    prev.TextColor = entry.TextColor;
-                                    continue;
-                                }
-                            }
-                            else
-                            {
-                                progressBars = new Dictionary<string, ConsoleLine>();
-                            }
-
-                            progressBars.Add(entry.Message, entry);
-                        }
-
-                        result.Add(entry);
-                    }
-                }
-                
-                if (count <= start || start == 0)
-                {
-                    // no new items or initial load, check if the job is still performing
+                Dictionary<string, ConsoleLine> progressBars = null;
                     
-                    var state = connection.GetStateData(consoleId.JobId);
-                    if (state == null)
+                foreach (var entry in storage.GetLines(consoleId, start, count - 1))
+                {
+                    if (entry.ProgressValue.HasValue)
                     {
-                        // No state found for a job, probably it was deleted
-                        count = -2;
-                    }
-                    else
-                    {
-                        if (!string.Equals(state.Name, ProcessingState.StateName, StringComparison.OrdinalIgnoreCase) ||
-                            !consoleId.Equals(new ConsoleId(consoleId.JobId, JobHelper.DeserializeDateTime(state.Data["StartedAt"]))))
+                        // aggregate progress value updates into single record
+
+                        if (progressBars != null)
                         {
-                            // Job state has changed (either not Processing, or another Processing with different console id)
-                            count = -1;
+                            ConsoleLine prev;
+                            if (progressBars.TryGetValue(entry.Message, out prev))
+                            {
+                                prev.ProgressValue = entry.ProgressValue;
+                                prev.TextColor = entry.TextColor;
+                                continue;
+                            }
                         }
+                        else
+                        {
+                            progressBars = new Dictionary<string, ConsoleLine>();
+                        }
+
+                        progressBars.Add(entry.Message, entry);
+                    }
+
+                    result.Add(entry);
+                }
+            }
+
+            if (count <= start || start == 0)
+            {
+                // no new items or initial load, check if the job is still performing
+
+                var state = storage.GetState(consoleId);
+                if (state == null)
+                {
+                    // No state found for a job, probably it was deleted
+                    count = -2;
+                }
+                else
+                {
+                    if (!string.Equals(state.Name, ProcessingState.StateName, StringComparison.OrdinalIgnoreCase) ||
+                        !consoleId.Equals(new ConsoleId(consoleId.JobId, JobHelper.DeserializeDateTime(state.Data["StartedAt"]))))
+                    {
+                        // Job state has changed (either not Processing, or another Processing with different console id)
+                        count = -1;
                     }
                 }
-                
-                start = count;
-                return result;
             }
+
+            start = count;
+            return result;
         }
     }
 }

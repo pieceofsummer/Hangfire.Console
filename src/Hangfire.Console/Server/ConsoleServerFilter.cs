@@ -1,8 +1,8 @@
 ﻿using Hangfire.Common;
 using Hangfire.Console.Serialization;
+using Hangfire.Console.Storage;
 using Hangfire.Server;
 using Hangfire.States;
-using Hangfire.Storage;
 using System;
 
 namespace Hangfire.Console.Server
@@ -40,7 +40,9 @@ namespace Hangfire.Console.Server
             
             var startedAt = JobHelper.DeserializeDateTime(state.Data["StartedAt"]);
 
-            context.Items["ConsoleId"] = new ConsoleId(context.BackgroundJob.Id, startedAt);
+            context.Items["ConsoleContext"] = new ConsoleContext(
+                new ConsoleId(context.BackgroundJob.Id, startedAt),
+                new ConsoleStorage(context.Connection));
         }
 
         public void OnPerformed(PerformedContext context)
@@ -52,19 +54,7 @@ namespace Hangfire.Console.Server
                 return;
             }
 
-            if (!context.Items.ContainsKey("ConsoleId"))
-            {
-                // Something gone wrong in OnPerforming
-                return;
-            }
-
-            var consoleId = (ConsoleId)context.Items["ConsoleId"];
-
-            using (var tran = (JobStorageTransaction)context.Connection.CreateWriteTransaction())
-            {
-                tran.ExpireSet(consoleId.ToString(), _options.ExpireIn);
-                tran.Commit();
-            }
+            ConsoleContext.FromPerformContext(context)?.Expire(_options.ExpireIn);
         }
     }
 }

@@ -19,3 +19,4 @@ using System.Runtime.InteropServices;
 [assembly: Guid("c18cbfcc-955b-4b21-b698-851cc56364af")]
 
 [assembly: InternalsVisibleTo("Hangfire.Console.Tests")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
