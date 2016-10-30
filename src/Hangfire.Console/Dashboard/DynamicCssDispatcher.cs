@@ -23,8 +23,8 @@ namespace Hangfire.Console.Dashboard
         public Task Dispatch(DashboardContext context)
         {
             var builder = new StringBuilder();
-            
-            builder.AppendLine(".console {")
+
+            builder.AppendLine(".console, .console .line-buffer {")
                    .Append("    background-color: ").Append(_options.BackgroundColor).AppendLine(";")
                    .Append("    color: ").Append(_options.TextColor).AppendLine(";")
                    .AppendLine("}");
