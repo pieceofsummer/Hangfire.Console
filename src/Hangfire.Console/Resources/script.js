@@ -150,7 +150,11 @@
             var self = this;
 
             $.get(pollUrl + this._id, { start: next }, function (data) {
-                self._buffer.append(new hangfire.LineBuffer($(data)));
+                var $data = $(data),
+                    buffer = new hangfire.LineBuffer($data),
+                    newLines = $(".line:not(.pb)", $data);
+                self._buffer.append(buffer);
+                self._el.toggleClass("waiting", newLines.length === 0);
             }, "html")
 
             .always(function () {
@@ -163,7 +167,7 @@
 
             window.removeResizeListener(this._buffer.getHTMLElement(), resizeHandler);
 
-            this._el.removeClass('active');
+            this._el.removeClass("active waiting");
             this._polling = false;
         };
 
