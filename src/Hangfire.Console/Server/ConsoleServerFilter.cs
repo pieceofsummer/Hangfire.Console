@@ -26,6 +26,12 @@ namespace Hangfire.Console.Server
         {
             var state = context.Connection.GetStateData(context.BackgroundJob.Id);
 
+            if (state == null)
+            {
+                // State for job not found?
+                return;
+            }
+
             if (!string.Equals(state.Name, ProcessingState.StateName, StringComparison.OrdinalIgnoreCase))
             {
                 // Not in Processing state? Something is really off...

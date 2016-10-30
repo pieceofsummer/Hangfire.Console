@@ -150,7 +150,7 @@ namespace Hangfire.Console.Dashboard
                             }
                             else
                             {
-                                progressBars = new Dictionary<string, Serialization.ConsoleLine>();
+                                progressBars = new Dictionary<string, ConsoleLine>();
                             }
 
                             progressBars.Add(entry.Message, entry);
