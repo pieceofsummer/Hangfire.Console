@@ -10,6 +10,7 @@
     "tags": [ "hangfire", "console", "logging" ],
     "owners": [ "Alexey Skalozub" ],
     "iconUrl": "https://raw.githubusercontent.com/pieceofsummer/Hangfire.Console/master/hangfire.console.png",
+    "licenseUrl": "https://raw.githubusercontent.com/pieceofsummer/Hangfire.Console/master/LICENSE.md",
     "releaseNotes": "- Add support for long messages\n- Refactor for better testability\n- Fix ugly font on OS X\n- Fix animation lags on all major browsers",
     "repository": {
       "type": "git",
