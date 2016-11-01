@@ -55,6 +55,8 @@ Here's what you can configure:
 Hangfire.Console provides extension methods on `PerformContext` object, 
 hence you'll need to add it as a job argument. 
 
+**NOTE**: Like `IJobCancellationToken`, `PerformContext` is a special argument type which Hangfire will substitute automatically. You should pass `null` when enqueuing a job.
+
 Now you can write to console:
 
 ```c#
