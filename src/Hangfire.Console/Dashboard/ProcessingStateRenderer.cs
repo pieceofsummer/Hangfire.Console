@@ -67,15 +67,14 @@ namespace Hangfire.Console.Dashboard
                 var jobId = page.RequestPath.Substring("/jobs/details/".Length);
 
                 var startedAt = JobHelper.DeserializeDateTime(stateData["StartedAt"]);
-
                 var consoleId = new ConsoleId(jobId, startedAt);
 
                 builder.Append("<div class=\"console-area\">");
                 builder.AppendFormat("<div class=\"console\" data-id=\"{0}\">", consoleId);
 
-                using (var data = new ConsoleStorage(page.Storage.GetConnection()))
+                using (var storage = new ConsoleStorage(page.Storage.GetConnection()))
                 {
-                    ConsoleRenderer.RenderLineBuffer(builder, data, consoleId, 0);
+                    ConsoleRenderer.RenderLineBuffer(builder, storage, consoleId, 0);
                 }
 
                 builder.Append("</div>");

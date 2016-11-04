@@ -40,9 +40,9 @@ namespace Hangfire.Console.Dashboard
             }
 
             var buffer = new StringBuilder();
-            using (var data = new ConsoleStorage(context.Storage.GetConnection()))
+            using (var storage = new ConsoleStorage(context.Storage.GetConnection()))
             {
-                ConsoleRenderer.RenderLineBuffer(buffer, data, consoleId, start);
+                ConsoleRenderer.RenderLineBuffer(buffer, storage, consoleId, start);
             }
 
             context.Response.ContentType = "text/html";

@@ -23,11 +23,11 @@ namespace Hangfire.Console.Tests.Server
         }
 
         [Fact]
-        public void Ctor_ThrowsException_IfDataIsNull()
+        public void Ctor_ThrowsException_IfStorageIsNull()
         {
             var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
 
-            Assert.Throws<ArgumentNullException>("data", () => new ConsoleContext(consoleId, null));
+            Assert.Throws<ArgumentNullException>("storage", () => new ConsoleContext(consoleId, null));
         }
 
         [Fact]
@@ -88,7 +88,7 @@ namespace Hangfire.Console.Tests.Server
             _storage.Verify(x => x.AddLine(It.IsAny<ConsoleId>(), It.IsAny<ConsoleLine>()));
             Assert.NotNull(progressBar);
         }
-
+        
         [Fact]
         public void Expire_ReallyExpiresLines()
         {

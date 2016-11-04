@@ -10,7 +10,7 @@ namespace Hangfire.Console.Server
     internal class ConsoleContext
     {
         private readonly ConsoleId _consoleId;
-        private readonly IConsoleStorage _data;
+        private readonly IConsoleStorage _storage;
         private double _lastTimeOffset;
         private int _nextProgressBarId;
 
@@ -28,15 +28,15 @@ namespace Hangfire.Console.Server
             return (ConsoleContext)context.Items["ConsoleContext"];
         }
 
-        public ConsoleContext(ConsoleId consoleId, IConsoleStorage data)
+        public ConsoleContext(ConsoleId consoleId, IConsoleStorage storage)
         {
             if (consoleId == null)
                 throw new ArgumentNullException(nameof(consoleId));
-            if (data == null)
-                throw new ArgumentNullException(nameof(data));
+            if (storage == null)
+                throw new ArgumentNullException(nameof(storage));
 
             _consoleId = consoleId;
-            _data = data;
+            _storage = storage;
 
             _lastTimeOffset = 0;
             _nextProgressBarId = 0;
@@ -59,7 +59,7 @@ namespace Hangfire.Console.Server
 
             _lastTimeOffset = line.TimeOffset;
             
-            _data.AddLine(_consoleId, line);
+            _storage.AddLine(_consoleId, line);
         }
         
         public void WriteLine(string value)
@@ -81,7 +81,7 @@ namespace Hangfire.Console.Server
 
         public void Expire(TimeSpan expireIn)
         {
-            _data.Expire(_consoleId, expireIn);
+            _storage.Expire(_consoleId, expireIn);
         }
     }
 }
