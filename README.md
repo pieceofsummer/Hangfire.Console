@@ -100,7 +100,7 @@ By default, progress bar is initialized with value `0`. You can specify initial 
 
 ### Enumeration progress
 
-To easily track progress of enumeration over a collection in a for-each loop, library adds an extension method `WithProgres`:
+To easily track progress of enumeration over a collection in a for-each loop, library adds an extension method `WithProgress`:
 
 ```c#
 public void TaskMethod(PerformContext context)
