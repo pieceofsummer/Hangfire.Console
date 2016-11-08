@@ -81,6 +81,17 @@ namespace Hangfire.Console.Tests.Dashboard
         }
 
         [Fact]
+        public void RenderLine_WithFractionalProgress()
+        {
+            var line = new ConsoleLine() { TimeOffset = 0, Message = "3", ProgressValue = 17.3 };
+            var builder = new StringBuilder();
+
+            ConsoleRenderer.RenderLine(builder, line, new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+
+            Assert.Equal("<div class=\"line pb\" data-id=\"3\"><span data-moment-title=\"1451606400\">+ <1ms</span><div class=\"pv\" style=\"width:17.3%\" data-value=\"17\"></div></div>", builder.ToString());
+        }
+
+        [Fact]
         public void RenderLine_WithProgressAndColor()
         {
             var line = new ConsoleLine() { TimeOffset = 0, Message = "3", ProgressValue = 17, TextColor = "#ffffff" };

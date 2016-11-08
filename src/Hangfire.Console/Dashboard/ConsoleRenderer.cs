@@ -6,6 +6,7 @@ using Hangfire.States;
 using Hangfire.Storage;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 
 namespace Hangfire.Console.Dashboard
@@ -54,7 +55,7 @@ namespace Hangfire.Console.Dashboard
 
             if (isProgressBar)
             {
-                builder.AppendFormat("<div class=\"pv\" style=\"width:{0}%\" data-value=\"{0}\"></div>", line.ProgressValue.Value);
+                builder.AppendFormat(CultureInfo.InvariantCulture, "<div class=\"pv\" style=\"width:{0:0.#}%\" data-value=\"{0:f0}\"></div>", line.ProgressValue.Value);
             }
             else
             {

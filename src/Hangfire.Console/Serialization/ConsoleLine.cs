@@ -39,6 +39,6 @@ namespace Hangfire.Console.Serialization
         /// Value update for a progress bar
         /// </summary>
         [JsonProperty("p", DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public int? ProgressValue { get; set; }
+        public double? ProgressValue { get; set; }
     }
 }
