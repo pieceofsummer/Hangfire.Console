@@ -98,6 +98,26 @@ You can create multiple progress bars and update them separately.
 
 By default, progress bar is initialized with value `0`. You can specify initial value and progress bar color as optional arguments for `WriteProgressBar()`.
 
+### Enumeration progress
+
+To easily track progress of enumeration over a collection in a for-each loop, library adds an extension method `WithProgres`:
+
+```c#
+public void TaskMethod(PerformContext context)
+{
+    var bar = context.WriteProgressBar();
+    
+    foreach (var item in collection.WithProgress(bar))
+    {
+        // do work
+    }
+}
+```
+
+It will automatically update progress bar during enumeration, and will set progress to 100% if for-each loop was interrupted with a `break` instruction.
+
+**NOTE**: If the number of items in the collection cannot be determined automatically (e.g. collection doesn't implement `ICollection`/`ICollection<T>`/`IReadOnlyCollection<T>`, you'll need to pass additional argument `count` to the extension method).
+
 ## License
 
 Copyright (c) 2016 Alexey Skalozub
