@@ -59,9 +59,11 @@ body {
 .console .line.pb > .pv {
     background-color: currentColor;
     display: inline-block;
-    min-width: 2em;
+    min-width: 1.6em;
     text-align: center;
     transition: width .6s ease;
+    text-overflow: clip;
+    white-space: nowrap;
 }
 
 .console .line.pb > .pv:before {
