@@ -17,7 +17,10 @@ namespace Hangfire.Console.Server
         public static ConsoleContext FromPerformContext(PerformContext context)
         {
             if (context == null)
-                throw new ArgumentNullException(nameof(context));
+            {
+                // PerformContext might be null because of refactoring, or during tests
+                return null;
+            }
 
             if (!context.Items.ContainsKey("ConsoleContext"))
             {

@@ -27,11 +27,13 @@ namespace Hangfire.Console.Tests
         }
         
         [Fact]
-        public void WriteLine_ThrowsException_IfContextIsNull()
+        public void WriteLine_DoesNotFail_IfContextIsNull()
         {
-            Assert.Throws<ArgumentNullException>("context", () => ConsoleExtensions.WriteLine(null, ""));
+            ConsoleExtensions.WriteLine(null, "");
+
+            _transaction.Verify(x => x.Commit(), Times.Never);
         }
-        
+
         [Fact]
         public void WriteLine_Writes_IfConsoleCreated()
         {
@@ -52,11 +54,14 @@ namespace Hangfire.Console.Tests
 
             _transaction.Verify(x => x.Commit(), Times.Never);
         }
-        
+
         [Fact]
-        public void WriteProgressBar_ThrowsException_IfContextIsNull()
+        public void WriteProgressBar_ReturnsNoOp_IfContextIsNull()
         {
-            Assert.Throws<ArgumentNullException>("context", () => ConsoleExtensions.WriteProgressBar(null));
+            var progressBar = ConsoleExtensions.WriteProgressBar(null);
+
+            Assert.IsType<NoOpProgressBar>(progressBar);
+            _transaction.Verify(x => x.Commit(), Times.Never);
         }
 
         [Fact]
