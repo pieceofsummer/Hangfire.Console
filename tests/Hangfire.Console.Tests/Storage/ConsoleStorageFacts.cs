@@ -7,7 +7,6 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Hangfire.Console.Tests.Storage
@@ -79,8 +78,8 @@ namespace Hangfire.Console.Tests.Storage
             storage.AddLine(_consoleId, line);
 
             Assert.False(line.IsReference);
-            _transaction.Verify(x => x.AddToSet(It.IsAny<string>(), It.IsAny<string>()));
-            _transaction.Verify(x => x.SetRangeInHash(It.IsAny<string>(), It.IsAny<IEnumerable<KeyValuePair<string, string>>>()), Times.Never);
+            _transaction.Verify(x => x.AddToSet($"console:{_consoleId}", It.IsAny<string>()));
+            _transaction.Verify(x => x.SetRangeInHash($"console:refs:{_consoleId}", It.IsAny<IEnumerable<KeyValuePair<string, string>>>()), Times.Never);
         }
 
         [Fact]
@@ -99,8 +98,8 @@ namespace Hangfire.Console.Tests.Storage
             storage.AddLine(_consoleId, line);
 
             Assert.True(line.IsReference);
-            _transaction.Verify(x => x.AddToSet(It.IsAny<string>(), It.IsAny<string>()));
-            _transaction.Verify(x => x.SetRangeInHash(It.IsAny<string>(), It.IsAny<IEnumerable<KeyValuePair<string, string>>>()));
+            _transaction.Verify(x => x.AddToSet($"console:{_consoleId}", It.IsAny<string>()));
+            _transaction.Verify(x => x.SetRangeInHash($"console:refs:{_consoleId}", It.IsAny<IEnumerable<KeyValuePair<string, string>>>()));
         }
 
         [Fact]
@@ -118,8 +117,19 @@ namespace Hangfire.Console.Tests.Storage
 
             storage.Expire(_consoleId, TimeSpan.FromHours(1));
 
-            _transaction.Verify(x => x.ExpireSet(It.IsAny<string>(), It.IsAny<TimeSpan>()));
-            _transaction.Verify(x => x.ExpireHash(It.IsAny<string>(), It.IsAny<TimeSpan>()));
+            _transaction.Verify(x => x.ExpireSet($"console:{_consoleId}", It.IsAny<TimeSpan>()));
+            _transaction.Verify(x => x.ExpireHash($"console:refs:{_consoleId}", It.IsAny<TimeSpan>()));
+        }
+
+        [Fact]
+        public void Expire_ExpiresOldSetAndHashKeysEither_ForBackwardsCompatibility()
+        {
+            var storage = new ConsoleStorage(_connection.Object);
+
+            storage.Expire(_consoleId, TimeSpan.FromHours(1));
+
+            _transaction.Verify(x => x.ExpireSet(_consoleId.ToString(), It.IsAny<TimeSpan>()));
+            _transaction.Verify(x => x.ExpireHash(_consoleId.ToString(), It.IsAny<TimeSpan>()));
         }
 
         [Fact]
@@ -133,8 +143,21 @@ namespace Hangfire.Console.Tests.Storage
         [Fact]
         public void GetLineCount_ReturnsCountOfSet()
         {
-            _connection.Setup(x => x.GetSetCount(It.IsAny<string>()))
+            _connection.Setup(x => x.GetSetCount($"console:{_consoleId}"))
                 .Returns(123);
+
+            var storage = new ConsoleStorage(_connection.Object);
+
+            var count = storage.GetLineCount(_consoleId);
+
+            Assert.Equal(123, count);
+        }
+
+        [Fact]
+        public void GetLineCount_ReturnsCountOfOldSet_WhenNewOneReturnsZero_ForBackwardsCompatibility()
+        {
+            _connection.Setup(x => x.GetSetCount($"console:{_consoleId}")).Returns(0);
+            _connection.Setup(x => x.GetSetCount(_consoleId.ToString())).Returns(123);
 
             var storage = new ConsoleStorage(_connection.Object);
 
@@ -161,7 +184,27 @@ namespace Hangfire.Console.Tests.Storage
                 new ConsoleLine { TimeOffset = 3, Message = "line4" },
             };
 
-            _connection.Setup(x => x.GetRangeFromSet(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()))
+            _connection.Setup(x => x.GetRangeFromSet($"console:{_consoleId}", It.IsAny<int>(), It.IsAny<int>()))
+                .Returns((string key, int start, int end) => lines.Where((x, i) => i >= start && i <= end).Select(JobHelper.ToJson).ToList());
+
+            var storage = new ConsoleStorage(_connection.Object);
+
+            var result = storage.GetLines(_consoleId, 1, 2).ToArray();
+
+            Assert.Equal(lines.Skip(1).Take(2).Select(x => x.Message), result.Select(x => x.Message));
+        }
+
+        [Fact]
+        public void GetLines_ReturnsRangeFromOldSet_ForBackwardsCompatibility()
+        {
+            var lines = new[] {
+                new ConsoleLine { TimeOffset = 0, Message = "line1" },
+                new ConsoleLine { TimeOffset = 1, Message = "line2" },
+                new ConsoleLine { TimeOffset = 2, Message = "line3" },
+                new ConsoleLine { TimeOffset = 3, Message = "line4" },
+            };
+
+            _connection.Setup(x => x.GetRangeFromSet(_consoleId.ToString(), It.IsAny<int>(), It.IsAny<int>()))
                 .Returns((string key, int start, int end) => lines.Where((x, i) => i >= start && i <= end).Select(JobHelper.ToJson).ToList());
 
             var storage = new ConsoleStorage(_connection.Object);
@@ -178,9 +221,9 @@ namespace Hangfire.Console.Tests.Storage
                 new ConsoleLine { TimeOffset = 0, Message = "line1", IsReference = true }
             };
 
-            _connection.Setup(x => x.GetRangeFromSet(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()))
+            _connection.Setup(x => x.GetRangeFromSet($"console:{_consoleId}", It.IsAny<int>(), It.IsAny<int>()))
                 .Returns((string key, int start, int end) => lines.Where((x, i) => i >= start && i <= end).Select(JobHelper.ToJson).ToList());
-            _connection.Setup(x => x.GetValueFromHash(It.IsAny<string>(), It.IsAny<string>()))
+            _connection.Setup(x => x.GetValueFromHash($"console:refs:{_consoleId}", It.IsAny<string>()))
                 .Returns("Dereferenced Line");
 
             var storage = new ConsoleStorage(_connection.Object);
@@ -189,6 +232,47 @@ namespace Hangfire.Console.Tests.Storage
 
             Assert.False(result.IsReference);
             Assert.Equal("Dereferenced Line", result.Message);
+        }
+
+        [Fact]
+        public void GetLines_ExpandsReferencesFromOldHash_ForBackwardsCompatibility()
+        {
+            var lines = new[] {
+                new ConsoleLine { TimeOffset = 0, Message = "line1", IsReference = true }
+            };
+
+            _connection.Setup(x => x.GetRangeFromSet(_consoleId.ToString(), It.IsAny<int>(), It.IsAny<int>()))
+                .Returns((string key, int start, int end) => lines.Where((x, i) => i >= start && i <= end).Select(JobHelper.ToJson).ToList());
+            _connection.Setup(x => x.GetValueFromHash(_consoleId.ToString(), It.IsAny<string>()))
+                .Returns("Dereferenced Line");
+
+            var storage = new ConsoleStorage(_connection.Object);
+
+            var result = storage.GetLines(_consoleId, 0, 1).Single();
+
+            Assert.False(result.IsReference);
+            Assert.Equal("Dereferenced Line", result.Message);
+        }
+
+        [Fact]
+        public void GetLines_HandlesHashException_WhenTryingToExpandReferences()
+        {
+            var lines = new[] {
+                new ConsoleLine { TimeOffset = 0, Message = "line1", IsReference = true }
+            };
+
+            _connection.Setup(x => x.GetRangeFromSet(_consoleId.ToString(), It.IsAny<int>(), It.IsAny<int>()))
+                .Returns((string key, int start, int end) => lines.Where((x, i) => i >= start && i <= end).Select(JobHelper.ToJson).ToList());
+
+            _connection.Setup(x => x.GetValueFromHash(_consoleId.ToString(), It.IsAny<string>()))
+                .Throws(new NotSupportedException());
+
+            var storage = new ConsoleStorage(_connection.Object);
+
+            var result = storage.GetLines(_consoleId, 0, 1).Single();
+
+            Assert.False(result.IsReference);
+            Assert.Equal("line1", result.Message);
         }
 
         [Fact]

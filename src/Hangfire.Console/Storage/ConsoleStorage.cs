@@ -61,7 +61,7 @@ namespace Hangfire.Console.Storage
                 {
                     var referenceKey = Guid.NewGuid().ToString("N");
 
-                    tran.SetRangeInHash(consoleId.ToString(), new[] { new KeyValuePair<string, string>(referenceKey, line.Message) });
+                    tran.SetRangeInHash(GetHashKey(consoleId), new[] { new KeyValuePair<string, string>(referenceKey, line.Message) });
 
                     line.Message = referenceKey;
                     line.IsReference = true;
@@ -69,7 +69,7 @@ namespace Hangfire.Console.Storage
                     value = JobHelper.ToJson(line);
                 }
 
-                tran.AddToSet(consoleId.ToString(), value);
+                tran.AddToSet(GetSetKey(consoleId), value);
 
                 tran.Commit();
             }
@@ -82,8 +82,15 @@ namespace Hangfire.Console.Storage
 
             using (var tran = (JobStorageTransaction)_connection.CreateWriteTransaction())
             {
-                tran.ExpireSet(consoleId.ToString(), expireIn);
-                tran.ExpireHash(consoleId.ToString(), expireIn);
+                tran.ExpireSet(GetSetKey(consoleId), expireIn);
+                tran.ExpireHash(GetHashKey(consoleId), expireIn);
+
+                // After upgrading to Hangfire.Console version with new keys, 
+                // there may be existing background jobs with console attached 
+                // to the previous keys. We should expire them also.
+                tran.ExpireSet(GetOldConsoleKey(consoleId), expireIn);
+                tran.ExpireHash(GetOldConsoleKey(consoleId), expireIn);
+
                 tran.Commit();
             }
         }
@@ -93,7 +100,16 @@ namespace Hangfire.Console.Storage
             if (consoleId == null)
                 throw new ArgumentNullException(nameof(consoleId));
 
-            return (int)_connection.GetSetCount(consoleId.ToString());
+            var result = (int)_connection.GetSetCount(GetSetKey(consoleId));
+
+            if (result == 0)
+            {
+                // Read operations should be backwards compatible and use
+                // old keys, if new one don't contain any data.
+                return (int)_connection.GetSetCount(GetOldConsoleKey(consoleId));
+            }
+
+            return result;
         }
 
         public IEnumerable<ConsoleLine> GetLines(ConsoleId consoleId, int start, int end)
@@ -101,13 +117,41 @@ namespace Hangfire.Console.Storage
             if (consoleId == null)
                 throw new ArgumentNullException(nameof(consoleId));
 
-            foreach (var item in _connection.GetRangeFromSet(consoleId.ToString(), start, end))
+            var useOldKeys = false;
+            var items = _connection.GetRangeFromSet(GetSetKey(consoleId), start, end);
+
+            if (items == null || items.Count == 0)
+            {
+                // Read operations should be backwards compatible and use
+                // old keys, if new one don't contain any data.
+                items = _connection.GetRangeFromSet(GetOldConsoleKey(consoleId), start, end);
+                useOldKeys = true;
+            }
+
+            foreach (var item in items)
             {
                 var line = JobHelper.FromJson<ConsoleLine>(item);
 
                 if (line.IsReference)
                 {
-                    line.Message = _connection.GetValueFromHash(consoleId.ToString(), line.Message);
+                    if (useOldKeys)
+                    {
+                        try
+                        {
+                            line.Message = _connection.GetValueFromHash(GetOldConsoleKey(consoleId), line.Message);
+                        }
+                        catch
+                        {
+                            // This may happen, when using Hangfire.Redis storage and having
+                            // background job, whose console session was stored using old key
+                            // format.
+                        }
+                    }
+                    else
+                    {
+                        line.Message = _connection.GetValueFromHash(GetHashKey(consoleId), line.Message);
+                    }
+                    
                     line.IsReference = false;
                 }
 
@@ -121,6 +165,21 @@ namespace Hangfire.Console.Storage
                 throw new ArgumentNullException(nameof(consoleId));
 
             return _connection.GetStateData(consoleId.JobId);
+        }
+
+        private string GetSetKey(ConsoleId consoleId)
+        {
+            return $"console:{consoleId}";
+        }
+
+        private string GetHashKey(ConsoleId consoleId)
+        {
+            return $"console:refs:{consoleId}";
+        }
+
+        private string GetOldConsoleKey(ConsoleId consoleId)
+        {
+            return consoleId.ToString();
         }
     }
 }
