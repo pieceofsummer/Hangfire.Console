@@ -134,9 +134,24 @@ namespace Hangfire.Console.Storage
 
                 if (line.IsReference)
                 {
-                    line.Message = useOldKeys
-                        ? _connection.GetValueFromHash(GetOldConsoleKey(consoleId), line.Message)
-                        : _connection.GetValueFromHash(GetHashKey(consoleId), line.Message);
+                    if (useOldKeys)
+                    {
+                        try
+                        {
+                            line.Message = _connection.GetValueFromHash(GetOldConsoleKey(consoleId), line.Message);
+                        }
+                        catch
+                        {
+                            // This may happen, when using Hangfire.Redis storage and having
+                            // background job, whose console session was stored using old key
+                            // format.
+                        }
+                    }
+                    else
+                    {
+                        line.Message = _connection.GetValueFromHash(GetHashKey(consoleId), line.Message);
+                    }
+                    
                     line.IsReference = false;
                 }
 

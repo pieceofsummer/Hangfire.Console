@@ -255,6 +255,27 @@ namespace Hangfire.Console.Tests.Storage
         }
 
         [Fact]
+        public void GetLines_HandlesHashException_WhenTryingToExpandReferences()
+        {
+            var lines = new[] {
+                new ConsoleLine { TimeOffset = 0, Message = "line1", IsReference = true }
+            };
+
+            _connection.Setup(x => x.GetRangeFromSet(_consoleId.ToString(), It.IsAny<int>(), It.IsAny<int>()))
+                .Returns((string key, int start, int end) => lines.Where((x, i) => i >= start && i <= end).Select(JobHelper.ToJson).ToList());
+
+            _connection.Setup(x => x.GetValueFromHash(_consoleId.ToString(), It.IsAny<string>()))
+                .Throws(new NotSupportedException());
+
+            var storage = new ConsoleStorage(_connection.Object);
+
+            var result = storage.GetLines(_consoleId, 0, 1).Single();
+
+            Assert.False(result.IsReference);
+            Assert.Equal("line1", result.Message);
+        }
+
+        [Fact]
         public void GetState_ThrowsException_IfConsoleIdIsNull()
         {
             var storage = new ConsoleStorage(_connection.Object);
