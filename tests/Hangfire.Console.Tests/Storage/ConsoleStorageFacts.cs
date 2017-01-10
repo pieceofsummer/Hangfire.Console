@@ -78,7 +78,7 @@ namespace Hangfire.Console.Tests.Storage
             storage.AddLine(_consoleId, line);
 
             Assert.False(line.IsReference);
-            _transaction.Verify(x => x.AddToSet($"console:{_consoleId}", It.IsAny<string>()));
+            _transaction.Verify(x => x.AddToSet($"console:{_consoleId}", It.IsAny<string>(), It.IsAny<double>()));
             _transaction.Verify(x => x.SetRangeInHash($"console:refs:{_consoleId}", It.IsAny<IEnumerable<KeyValuePair<string, string>>>()), Times.Never);
         }
 
@@ -98,7 +98,7 @@ namespace Hangfire.Console.Tests.Storage
             storage.AddLine(_consoleId, line);
 
             Assert.True(line.IsReference);
-            _transaction.Verify(x => x.AddToSet($"console:{_consoleId}", It.IsAny<string>()));
+            _transaction.Verify(x => x.AddToSet($"console:{_consoleId}", It.IsAny<string>(), It.IsAny<double>()));
             _transaction.Verify(x => x.SetRangeInHash($"console:refs:{_consoleId}", It.IsAny<IEnumerable<KeyValuePair<string, string>>>()));
         }
 

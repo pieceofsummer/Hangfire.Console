@@ -69,7 +69,7 @@ namespace Hangfire.Console.Storage
                     value = JobHelper.ToJson(line);
                 }
 
-                tran.AddToSet(GetSetKey(consoleId), value);
+                tran.AddToSet(GetSetKey(consoleId), value, line.TimeOffset);
 
                 tran.Commit();
             }
