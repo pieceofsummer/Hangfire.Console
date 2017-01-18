@@ -17,7 +17,7 @@ namespace Hangfire.Console.Serialization
         public bool IsReference { get; set; }
 
         /// <summary>
-        /// True if <see cref="Message"/> is a Hash reference.
+        /// True if <see cref="Message"/> contains raw HTML.
         /// </summary>
         [JsonProperty("h", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public bool IsHtml { get; set; }
