@@ -50,6 +50,16 @@ namespace Hangfire.Console
         }
 
         /// <summary>
+        /// Adds a HTML string to console.
+        /// </summary>
+        /// <param name="context">Context</param>
+        /// <param name="value">String</param>
+        public static void WriteHtmlLine(this PerformContext context, string value)
+        {
+            ConsoleContext.FromPerformContext(context)?.WriteHtmlLine(value);
+        }
+
+        /// <summary>
         /// Adds a string to console.
         /// </summary>
         /// <param name="context">Context</param>

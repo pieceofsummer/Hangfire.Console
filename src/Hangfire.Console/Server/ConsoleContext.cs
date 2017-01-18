@@ -70,6 +70,11 @@ namespace Hangfire.Console.Server
             AddLine(new ConsoleLine() { Message = value ?? "", TextColor = TextColor });
         }
 
+        public void WriteHtmlLine(string value)
+        {
+            AddLine(new ConsoleLine() { Message = value ?? "", TextColor = TextColor, IsHtml = true });
+        }
+
         public IProgressBar WriteProgressBar(int value, ConsoleTextColor color)
         {
             var progressBarId = Interlocked.Increment(ref _nextProgressBarId);

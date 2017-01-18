@@ -59,7 +59,10 @@ namespace Hangfire.Console.Dashboard
             }
             else
             {
-                builder.Append(Helper.HtmlEncode(line.Message));
+                if (line.IsHtml)
+                    builder.Append(line.Message);
+                else
+                    builder.Append(Helper.HtmlEncode(line.Message));
             }
 
             builder.Append("</div>");
