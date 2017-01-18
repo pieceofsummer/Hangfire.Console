@@ -17,6 +17,12 @@ namespace Hangfire.Console.Serialization
         public bool IsReference { get; set; }
 
         /// <summary>
+        /// True if <see cref="Message"/> contains raw HTML.
+        /// </summary>
+        [JsonProperty("h", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public bool IsHtml { get; set; }
+
+        /// <summary>
         /// Message text, or message reference, or progress bar id
         /// </summary>
         [JsonProperty("s", Required = Required.Always)]
