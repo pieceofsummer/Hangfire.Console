@@ -1,5 +1,5 @@
 ﻿{
-  "version": "1.1.7-*",
+  "version": "1.2.0-*",
 
   "title": "Hangfire.Console",
   "description": "Job console for Hangfire",
@@ -11,7 +11,7 @@
     "owners": [ "Alexey Skalozub" ],
     "iconUrl": "https://raw.githubusercontent.com/pieceofsummer/Hangfire.Console/master/hangfire.console.png",
     "licenseUrl": "https://raw.githubusercontent.com/pieceofsummer/Hangfire.Console/master/LICENSE.md",
-    "releaseNotes": "- Key format changed to support single-keyspace storages, like Hangfire.Redis\n- Fixed line ordering issue",
+    "releaseNotes": "- Hyperlink detection",
     "repository": {
       "type": "git",
       "url": "https://github.com/pieceofsummer/Hangfire.Console"

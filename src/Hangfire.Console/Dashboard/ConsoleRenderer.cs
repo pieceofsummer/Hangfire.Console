@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Hangfire.Console.Dashboard
 {
@@ -19,11 +20,40 @@ namespace Hangfire.Console.Dashboard
     {
         private static readonly HtmlHelper Helper = new HtmlHelper(new DummyPage());
 
+        // Reference: http://www.regexguru.com/2008/11/detecting-urls-in-a-block-of-text/
+        private static readonly Regex LinkDetector = new Regex(@"
+            \b(?:(?<schema>(?:f|ht)tps?://)|www\.|ftp\.)
+              (?:\([-\w+&@#/%=~|$?!:,.]*\)|[-\w+&@#/%=~|$?!:,.])*
+              (?:\([-\w+&@#/%=~|$?!:,.]*\)|[\w+&@#/%=~|$])", 
+            RegexOptions.IgnorePatternWhitespace | RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
         private class DummyPage : RazorPage
         {
             public override void Execute()
             {
             }
+        }
+
+        /// <summary>
+        /// Autodetects hyperlinks and wraps them into Anchor tag
+        /// </summary>
+        /// <param name="source">String to detect links in</param>
+        /// <returns>String with hyperlinks</returns>
+        public static string DetectLinks(string source)
+        {
+            if (string.IsNullOrEmpty(source)) return source;
+
+            return LinkDetector.Replace(source, m => 
+            {
+                string schema = "";
+                if (!m.Groups["schema"].Success)
+                {
+                    // force schema for links without one (like www.google.com)
+                    schema = m.Value.StartsWith("ftp.", StringComparison.OrdinalIgnoreCase) ? "ftp://" : "http://";
+                }
+
+                return $"<a target=\"_blank\" rel=\"nofollow\" href=\"{schema}{m.Value}\">{m.Value}</a>";
+            });
         }
 
         /// <summary>
@@ -59,7 +89,7 @@ namespace Hangfire.Console.Dashboard
             }
             else
             {
-                builder.Append(Helper.HtmlEncode(line.Message));
+                builder.Append(DetectLinks(Helper.HtmlEncode(line.Message)));
             }
 
             builder.Append("</div>");

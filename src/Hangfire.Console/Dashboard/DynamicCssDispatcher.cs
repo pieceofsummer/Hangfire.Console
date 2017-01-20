@@ -33,6 +33,10 @@ namespace Hangfire.Console.Dashboard
                    .Append("    color: ").Append(_options.TimestampColor).AppendLine(";")
                    .AppendLine("}");
 
+            builder.AppendLine(".console .line > a, .console.line > a:visited, .console.line > a:hover {")
+                   .Append("    color: ").Append(_options.TextColor).AppendLine(";")
+                   .AppendLine("}");
+
             builder.AppendLine(".console .line.pb > .pv:before {")
                    .Append("    color: ").Append(_options.BackgroundColor).AppendLine(";")
                    .AppendLine("}");
