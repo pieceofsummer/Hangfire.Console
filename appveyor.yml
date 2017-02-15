@@ -3,7 +3,7 @@ version: 1.2.1-{build}
 os: Visual Studio 2015
 
 nuget:
-  account_feed: true
+  account_feed: false
   
 branches:
   only:
