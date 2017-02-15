@@ -3,6 +3,7 @@ using Hangfire.Console.Serialization;
 using Hangfire.Console.Storage;
 using Hangfire.Server;
 using System;
+using System.Globalization;
 using System.Threading;
 
 namespace Hangfire.Console.Server
@@ -74,7 +75,7 @@ namespace Hangfire.Console.Server
         {
             var progressBarId = Interlocked.Increment(ref _nextProgressBarId);
 
-            var progressBar = new DefaultProgressBar(this, progressBarId.ToString(), color);
+            var progressBar = new DefaultProgressBar(this, progressBarId.ToString(CultureInfo.InvariantCulture), color);
 
             // set initial value
             progressBar.SetValue(value);
