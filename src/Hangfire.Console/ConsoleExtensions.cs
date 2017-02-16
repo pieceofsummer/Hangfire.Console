@@ -58,7 +58,7 @@ namespace Hangfire.Console
         /// <param name="color">Progress bar color</param>
         public static IProgressBar WriteProgressBar(this PerformContext context, double value = 0.0, double maxValue = 100.0, ConsoleTextColor color = null)
         {
-            return ConsoleContext.FromPerformContext(context)?.WriteProgressBar(value, maxValue, color) ?? new NoOpProgressBar();
+            return ConsoleContext.FromPerformContext(context)?.WriteProgressBar(value, maxValue, color) ?? new NoOpProgressBar(maxValue);
         }
 
         /// <summary>
