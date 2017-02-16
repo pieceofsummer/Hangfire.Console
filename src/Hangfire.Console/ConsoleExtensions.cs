@@ -50,6 +50,18 @@ namespace Hangfire.Console
         }
 
         /// <summary>
+        /// Adds an updatable progress bar to console, with a max value
+        /// </summary>
+        /// <param name="context">Context</param>
+        /// <param name="value">Initial value</param>
+        /// <param name="maxValue">Maximum value</param>
+        /// <param name="color">Progress bar color</param>
+        public static IProgressBar WriteProgressBar(this PerformContext context, double value = 0.0, double maxValue = 100.0, ConsoleTextColor color = null)
+        {
+            return ConsoleContext.FromPerformContext(context)?.WriteProgressBar(value, maxValue, color) ?? new NoOpProgressBar();
+        }
+
+        /// <summary>
         /// Adds a string to console.
         /// </summary>
         /// <param name="context">Context</param>
