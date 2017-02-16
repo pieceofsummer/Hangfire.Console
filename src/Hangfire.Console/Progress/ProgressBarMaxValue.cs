@@ -30,7 +30,7 @@ namespace Hangfire.Console.Progress
             _color = color;
 
             _value = -1.0;
-            _maxValue = 100.0;
+            _maxValue = maxValue;
         }
         
         public void SetValue(double value)
@@ -44,7 +44,7 @@ namespace Hangfire.Console.Progress
                 return;
 
             var percentValue = value * 100.0 / _maxValue;
-            if (percentValue > 0)
+            if (percentValue > 100)
                 percentValue = 100.0;
 
             _context.AddLine(new ConsoleLine() { Message = _progressBarId, ProgressValue = percentValue, TextColor = _color });
