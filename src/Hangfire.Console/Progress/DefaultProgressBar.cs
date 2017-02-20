@@ -13,8 +13,9 @@ namespace Hangfire.Console.Progress
         private readonly string _progressBarId;
         private string _color;
         private double _value;
+        private double _maxValue;
 
-        internal DefaultProgressBar(ConsoleContext context, string progressBarId, string color)
+        internal DefaultProgressBar(ConsoleContext context, string progressBarId, string color, double maxValue)
         {
             if (context == null)
                 throw new ArgumentNullException(nameof(context));
@@ -25,6 +26,7 @@ namespace Hangfire.Console.Progress
             _progressBarId = progressBarId;
             _color = color;
             _value = -1;
+            _maxValue = maxValue;
         }
 
         public void SetValue(int value)
@@ -36,12 +38,14 @@ namespace Hangfire.Console.Progress
         {
             value = Math.Round(value, 1);
 
-            if (value < 0 || value > 100)
-                throw new ArgumentOutOfRangeException(nameof(value), "Value should be in range 0..100");
+            if (value < 0 || value > _maxValue)
+                throw new ArgumentOutOfRangeException(nameof(value), "Value should be in range 0.." + _maxValue);
 
             if (_value == value) return;
-            
-            _context.AddLine(new ConsoleLine() { Message = _progressBarId, ProgressValue = value, TextColor = _color });
+
+            var percentValue = value * 100.0 / _maxValue;
+
+            _context.AddLine(new ConsoleLine() { Message = _progressBarId, ProgressValue = percentValue, TextColor = _color });
 
             _value = value;
             _color = null; // write color only once

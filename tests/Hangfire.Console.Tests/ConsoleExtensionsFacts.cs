@@ -104,7 +104,7 @@ namespace Hangfire.Console.Tests
 
             var progressBar = ConsoleExtensions.WriteProgressBar(context, 0.0, 100.0);
 
-            Assert.IsType<ProgressBarMaxValue>(progressBar);
+            Assert.IsType<DefaultProgressBar>(progressBar);
             _transaction.Verify(x => x.Commit());
         }
 

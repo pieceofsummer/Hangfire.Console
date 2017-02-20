@@ -70,7 +70,7 @@ namespace Hangfire.Console.Server
         {
             var progressBarId = Interlocked.Increment(ref _nextProgressBarId);
 
-            var progressBar = new ProgressBarMaxValue(this, progressBarId.ToString(CultureInfo.InvariantCulture), color, maxValue);
+            var progressBar = new DefaultProgressBar(this, progressBarId.ToString(CultureInfo.InvariantCulture), color, maxValue);
 
             // set initial value
             progressBar.SetValue(value);
@@ -87,7 +87,7 @@ namespace Hangfire.Console.Server
         {
             var progressBarId = Interlocked.Increment(ref _nextProgressBarId);
 
-            var progressBar = new DefaultProgressBar(this, progressBarId.ToString(CultureInfo.InvariantCulture), color);
+            var progressBar = new DefaultProgressBar(this, progressBarId.ToString(CultureInfo.InvariantCulture), color, 100.0);
 
             // set initial value
             progressBar.SetValue(value);
