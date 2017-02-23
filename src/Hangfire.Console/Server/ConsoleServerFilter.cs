@@ -22,9 +22,9 @@ namespace Hangfire.Console.Server
             _options = options;
         }
 
-        public void OnPerforming(PerformingContext context)
+        public void OnPerforming(PerformingContext filterContext)
         {
-            var state = context.Connection.GetStateData(context.BackgroundJob.Id);
+            var state = filterContext.Connection.GetStateData(filterContext.BackgroundJob.Id);
 
             if (state == null)
             {
@@ -40,21 +40,21 @@ namespace Hangfire.Console.Server
             
             var startedAt = JobHelper.DeserializeDateTime(state.Data["StartedAt"]);
 
-            context.Items["ConsoleContext"] = new ConsoleContext(
-                new ConsoleId(context.BackgroundJob.Id, startedAt),
-                new ConsoleStorage(context.Connection));
+            filterContext.Items["ConsoleContext"] = new ConsoleContext(
+                new ConsoleId(filterContext.BackgroundJob.Id, startedAt),
+                new ConsoleStorage(filterContext.Connection));
         }
 
-        public void OnPerformed(PerformedContext context)
+        public void OnPerformed(PerformedContext filterContext)
         {
-            if (context.Canceled)
+            if (filterContext.Canceled)
             {
                 // Processing was been cancelled by one of the job filters
                 // There's nothing to do here, as processing hasn't started
                 return;
             }
 
-            ConsoleContext.FromPerformContext(context)?.Expire(_options.ExpireIn);
+            ConsoleContext.FromPerformContext(filterContext)?.Expire(_options.ExpireIn);
         }
     }
 }
