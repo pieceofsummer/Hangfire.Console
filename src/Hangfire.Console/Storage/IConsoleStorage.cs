@@ -25,6 +25,12 @@ namespace Hangfire.Console.Storage
         IEnumerable<ConsoleLine> GetLines(ConsoleId consoleId, int start, int end);
 
         /// <summary>
+        /// Initializes console.
+        /// </summary>
+        /// <param name="consoleId">Console identifier</param>
+        void InitConsole(ConsoleId consoleId);
+
+        /// <summary>
         /// Adds line to console.
         /// </summary>
         /// <param name="consoleId">Console identifier</param>
@@ -32,14 +38,21 @@ namespace Hangfire.Console.Storage
         void AddLine(ConsoleId consoleId, ConsoleLine line);
 
         /// <summary>
+        /// Returns current expiration TTL for console.
+        /// If console is not expired, returns negative <see cref="TimeSpan"/>.
+        /// </summary>
+        /// <param name="consoleId">Console identifier</param>
+        TimeSpan GetConsoleTtl(ConsoleId consoleId);
+
+        /// <summary>
         /// Expire data for console.
         /// </summary>
         /// <param name="consoleId">Console identifier</param>
         /// <param name="expireIn">Expiration time</param>
         void Expire(ConsoleId consoleId, TimeSpan expireIn);
-
+        
         /// <summary>
-        /// Returns State object associated with console.
+        /// Returns last (current) state of the console's parent job.
         /// </summary>
         /// <param name="consoleId">Console identifier</param>
         StateData GetState(ConsoleId consoleId);

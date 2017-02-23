@@ -13,6 +13,12 @@ namespace Hangfire.Console
         public TimeSpan ExpireIn { get; set; } = TimeSpan.FromDays(1);
 
         /// <summary>
+        /// Gets or sets if console messages should follow the same retention policy as the parent job.
+        /// When set to <c>true</c>, <see cref="ExpireIn"/> parameter is ignored.
+        /// </summary>
+        public bool FollowJobRetentionPolicy { get; set; } = true;
+        
+        /// <summary>
         /// Gets or sets console poll interval (in ms).
         /// </summary>
         public int PollInterval { get; set; } = 1000;

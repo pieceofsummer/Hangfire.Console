@@ -44,6 +44,8 @@ namespace Hangfire.Console.Server
 
             _lastTimeOffset = 0;
             _nextProgressBarId = 0;
+
+            _storage.InitConsole(_consoleId);
         }
 
         public ConsoleTextColor TextColor { get; set; }
@@ -86,6 +88,19 @@ namespace Hangfire.Console.Server
         public void Expire(TimeSpan expireIn)
         {
             _storage.Expire(_consoleId, expireIn);
+        }
+
+        public void FixExpiration()
+        {
+            TimeSpan ttl = _storage.GetConsoleTtl(_consoleId);
+            if (ttl < TimeSpan.Zero)
+            {
+                // ConsoleApplyStateFilter not called yet, or current job state is not final.
+                // Either way, there's no need to expire console here.
+                return;
+            }
+            
+            _storage.Expire(_consoleId, ttl);
         }
     }
 }

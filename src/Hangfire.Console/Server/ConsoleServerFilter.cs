@@ -47,14 +47,22 @@ namespace Hangfire.Console.Server
 
         public void OnPerformed(PerformedContext filterContext)
         {
-            if (filterContext.Canceled)
+            if (_options.FollowJobRetentionPolicy)
             {
-                // Processing was been cancelled by one of the job filters
-                // There's nothing to do here, as processing hasn't started
-                return;
-            }
+                // Console sessions follow parent job expiration.
+                // Normally, ConsoleApplyStateFilter will update expiration for all consoles, no extra work needed.
 
-            ConsoleContext.FromPerformContext(filterContext)?.Expire(_options.ExpireIn);
+                // If the running job is deleted from the Dashboard, ConsoleApplyStateFilter will be called immediately,
+                // but the job will continue running, unless IJobCancellationToken.ThrowIfCancellationRequested() is met. 
+                // If anything is written to console after the job was deleted, it won't get a correct expiration assigned.
+
+                // Need to re-apply expiration to prevent those records from becoming eternal garbage.
+                ConsoleContext.FromPerformContext(filterContext)?.FixExpiration();
+            }
+            else
+            {
+                ConsoleContext.FromPerformContext(filterContext)?.Expire(_options.ExpireIn);
+            }
         }
     }
 }

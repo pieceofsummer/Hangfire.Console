@@ -1,5 +1,6 @@
 ﻿using Hangfire.Console.Dashboard;
 using Hangfire.Console.Server;
+using Hangfire.Console.States;
 using Hangfire.Dashboard;
 using Hangfire.Dashboard.Extensions;
 using Hangfire.States;
@@ -29,6 +30,10 @@ namespace Hangfire.Console
 
             // register server filter for jobs
             GlobalJobFilters.Filters.Add(new ConsoleServerFilter(options));
+
+            // register apply state filter for jobs
+            // (context may be altered by other state filters, so make it the very last filter in chain to use final context values)
+            GlobalJobFilters.Filters.Add(new ConsoleApplyStateFilter(options), int.MaxValue);
 
             // replace renderer for Processing state
             JobHistoryRenderer.Register(ProcessingState.StateName, new ProcessingStateRenderer(options).Render);

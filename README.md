@@ -45,6 +45,7 @@ As usual, you may provide additional options for `UseConsole()` method.
 
 Here's what you can configure:
 - **ExpireIn** – time to keep console sessions (default: 24 hours)
+- **FollowJobRetentionPolicy** – expire all console sessions along with parent job (default: true)
 - **PollInterval** – poll interval for live updates, ms (default: 1000)
 - **BackgroundColor** – console background color (default: #0d3163)
 - **TextColor** – console default text color (default: #ffffff)

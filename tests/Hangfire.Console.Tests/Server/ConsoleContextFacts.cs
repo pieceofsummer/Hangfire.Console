@@ -31,6 +31,15 @@ namespace Hangfire.Console.Tests.Server
         }
 
         [Fact]
+        public void Ctor_InitializesConsole()
+        {
+            var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+            var context = new ConsoleContext(consoleId, _storage.Object);
+
+            _storage.Verify(x => x.InitConsole(consoleId));
+        }
+
+        [Fact]
         public void AddLine_ThrowsException_IfLineIsNull()
         {
             var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
@@ -99,6 +108,35 @@ namespace Hangfire.Console.Tests.Server
 
             _storage.Verify(x => x.Expire(It.IsAny<ConsoleId>(), It.IsAny<TimeSpan>()));
         }
+        
+        [Fact]
+        public void FixExpiration_RequestsConsoleTtl_IgnoresIfNegative()
+        {
+            _storage.Setup(x => x.GetConsoleTtl(It.IsAny<ConsoleId>()))
+                .Returns(TimeSpan.FromSeconds(-1));
 
+            var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+            var context = new ConsoleContext(consoleId, _storage.Object);
+
+            context.FixExpiration();
+
+            _storage.Verify(x => x.GetConsoleTtl(It.IsAny<ConsoleId>()));
+            _storage.Verify(x => x.Expire(It.IsAny<ConsoleId>(), It.IsAny<TimeSpan>()), Times.Never);
+        }
+
+        [Fact]
+        public void FixExpiration_RequestsConsoleTtl_ExpiresIfPositive()
+        {
+            _storage.Setup(x => x.GetConsoleTtl(It.IsAny<ConsoleId>()))
+                .Returns(TimeSpan.FromHours(1));
+
+            var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+            var context = new ConsoleContext(consoleId, _storage.Object);
+
+            context.FixExpiration();
+
+            _storage.Verify(x => x.GetConsoleTtl(It.IsAny<ConsoleId>()));
+            _storage.Verify(x => x.Expire(It.IsAny<ConsoleId>(), It.IsAny<TimeSpan>()));
+        }
     }
 }
