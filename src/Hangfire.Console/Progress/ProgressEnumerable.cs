@@ -54,7 +54,7 @@ namespace Hangfire.Console.Progress
                 _count = count;
                 _index = -1;
                 _percentageIncrementStep = percentageIncrementStep;
-                _segmentThreshold = (int)((_percentageIncrementStep / 100.0) * _count);
+                CalculateSegmentThreshold();
             }
 
             public object Current => _enumerator.Current;
@@ -82,6 +82,7 @@ namespace Hangfire.Console.Progress
                     {
                         // adjust maxCount if overrunned
                         _count = _index + 1;
+                        CalculateSegmentThreshold();
                     }
 
                     if (_percentageIncrementStep > 0)
@@ -102,6 +103,11 @@ namespace Hangfire.Console.Progress
             {
                 _enumerator.Reset();
                 _index = -1;
+            }
+
+            private void CalculateSegmentThreshold()
+            {
+                _segmentThreshold = (int)((_percentageIncrementStep / 100.0) * _count);
             }
         }
     }
@@ -162,7 +168,7 @@ namespace Hangfire.Console.Progress
                 _count = count;
                 _index = -1;
                 _percentageIncrementStep = percentageIncrementStep;
-                _segmentThreshold = (int)((_percentageIncrementStep / 100.0) * _count);
+                CalculateSegmentThreshold();
             }
 
             public T Current => _enumerator.Current;
@@ -192,6 +198,7 @@ namespace Hangfire.Console.Progress
                     {
                         // adjust maxCount if overrunned
                         _count = _index + 1;
+                        CalculateSegmentThreshold();
                     }
 
                     if (_percentageIncrementStep > 0)
@@ -212,6 +219,11 @@ namespace Hangfire.Console.Progress
             {
                 _enumerator.Reset();
                 _index = -1;
+            }
+
+            private void CalculateSegmentThreshold()
+            {
+                _segmentThreshold = (int)((_percentageIncrementStep / 100.0) * _count);
             }
         }
     }
