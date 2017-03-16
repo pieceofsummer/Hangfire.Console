@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace Hangfire.Dashboard.Extensions
@@ -21,6 +22,21 @@ namespace Hangfire.Dashboard.Extensions
                 throw new ArgumentNullException(nameof(routes));
 
             return (List<Tuple<string, IDashboardDispatcher>>)_dispatchers.GetValue(routes);
+        }
+
+        /// <summary>
+        /// Checks if there's a dispatcher registered for given <paramref name="pathTemplate"/>.
+        /// </summary>
+        /// <param name="routes">Route collection</param>
+        /// <param name="pathTemplate">Path template</param>
+        public static bool Contains(this RouteCollection routes, string pathTemplate)
+        {
+            if (routes == null)
+                throw new ArgumentNullException(nameof(routes));
+            if (pathTemplate == null)
+                throw new ArgumentNullException(nameof(pathTemplate));
+
+            return routes.GetDispatchers().Any(x => x.Item1 == pathTemplate);
         }
 
         /// <summary>

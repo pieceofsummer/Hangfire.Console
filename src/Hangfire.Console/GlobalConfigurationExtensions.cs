@@ -43,11 +43,15 @@ namespace Hangfire.Console
             
             // register additional dispatchers for CSS and JS
             var assembly = typeof(ConsoleRenderer).GetTypeInfo().Assembly;
-            DashboardRoutes.Routes.Append("/js[0-9]{3}", new EmbeddedResourceDispatcher(assembly, "Hangfire.Console.Resources.resize.min.js"));
-            DashboardRoutes.Routes.Append("/js[0-9]{3}", new DynamicJsDispatcher(options));
-            DashboardRoutes.Routes.Append("/js[0-9]{3}", new EmbeddedResourceDispatcher(assembly, "Hangfire.Console.Resources.script.js"));
-            DashboardRoutes.Routes.Append("/css[0-9]{3}", new EmbeddedResourceDispatcher(assembly, "Hangfire.Console.Resources.style.css"));
-            DashboardRoutes.Routes.Append("/css[0-9]{3}", new DynamicCssDispatcher(options));
+            
+            var jsPath = DashboardRoutes.Routes.Contains("/js[0-9]+") ? "/js[0-9]+" : "/js[0-9]{3}";
+            DashboardRoutes.Routes.Append(jsPath, new EmbeddedResourceDispatcher(assembly, "Hangfire.Console.Resources.resize.min.js"));
+            DashboardRoutes.Routes.Append(jsPath, new DynamicJsDispatcher(options));
+            DashboardRoutes.Routes.Append(jsPath, new EmbeddedResourceDispatcher(assembly, "Hangfire.Console.Resources.script.js"));
+
+            var cssPath = DashboardRoutes.Routes.Contains("/css[0-9]+") ? "/css[0-9]+" : "/css[0-9]{3}";
+            DashboardRoutes.Routes.Append(cssPath, new EmbeddedResourceDispatcher(assembly, "Hangfire.Console.Resources.style.css"));
+            DashboardRoutes.Routes.Append(cssPath, new DynamicCssDispatcher(options));
             
             return configuration;
         }
