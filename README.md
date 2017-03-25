@@ -1,4 +1,4 @@
-# Hangfire.Console
+﻿# Hangfire.Console
 
 ![Build status](https://ci.appveyor.com/api/projects/status/b57hb7438d7dvxa2/branch/master?svg=true&passingText=master%20%u2714)
 [![NuGet](https://img.shields.io/nuget/v/Hangfire.Console.svg)](https://www.nuget.org/packages/Hangfire.Console/)
@@ -56,7 +56,6 @@ Here's what you can configure:
 Hangfire.Console provides extension methods on `PerformContext` object, 
 hence you'll need to add it as a job argument. 
 
-**NOTE**: Like `IJobCancellationToken`, `PerformContext` is a special argument type which Hangfire will substitute automatically. You should pass `null` when enqueuing a job.
 
 Now you can write to console:
 
@@ -113,6 +112,13 @@ public void TaskMethod(PerformContext context)
         // do work
     }
 }
+```
+
+**NOTE**: Like `IJobCancellationToken`, `PerformContext` is a special argument type which Hangfire will substitute automatically. You should pass `null` when calling TaskMethod:
+
+```c#
+RecurringJob.AddOrUpdate(() => TaskMethod(null), "* * * * *");
+
 ```
 
 It will automatically update progress bar during enumeration, and will set progress to 100% if for-each loop was interrupted with a `break` instruction.
