@@ -27,7 +27,7 @@ after_build:
 - cmd: dotnet pack src/Hangfire.Console -o artifacts -c Release
 
 test_script:
-- cmd: dotnet test tests/Hangfire.Console.Tests
+- cmd: dotnet test tests/Hangfire.Console.Tests/Hangfire.Console.Tests.csproj
 
 artifacts:
 - path: 'artifacts/**/*.nupkg'
