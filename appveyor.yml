@@ -24,7 +24,7 @@ build_script:
 - cmd: dotnet build tests/Hangfire.Console.Tests -c Release
 
 after_build:
-- cmd: dotnet pack src/Hangfire.Console -o artifacts -c Release
+- cmd: dotnet pack src/Hangfire.Console -o ../../artifacts -c Release
 
 test_script:
 - cmd: dotnet test tests/Hangfire.Console.Tests/Hangfire.Console.Tests.csproj
