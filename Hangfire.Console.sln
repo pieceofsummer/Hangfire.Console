@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26430.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{436BABB0-DBF7-4301-BC7F-CBB9D09FAD36}"
 EndProject
@@ -9,15 +9,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		appveyor.yml = appveyor.yml
 		dashboard.png = dashboard.png
-		global.json = global.json
 		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{CBD2EEC6-826C-4477-B8F7-EADE2D944B74}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Hangfire.Console", "src\Hangfire.Console\Hangfire.Console.xproj", "{C18CBFCC-955B-4B21-B698-851CC56364AF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hangfire.Console", "src\Hangfire.Console\Hangfire.Console.csproj", "{C18CBFCC-955B-4B21-B698-851CC56364AF}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Hangfire.Console.Tests", "tests\Hangfire.Console.Tests\Hangfire.Console.Tests.xproj", "{D5068E09-A43C-4B05-8068-C50E9497EB25}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hangfire.Console.Tests", "tests\Hangfire.Console.Tests\Hangfire.Console.Tests.csproj", "{D5068E09-A43C-4B05-8068-C50E9497EB25}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
