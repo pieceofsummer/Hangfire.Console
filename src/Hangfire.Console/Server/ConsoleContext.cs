@@ -93,7 +93,7 @@ namespace Hangfire.Console.Server
         public void FixExpiration()
         {
             TimeSpan ttl = _storage.GetConsoleTtl(_consoleId);
-            if (ttl < TimeSpan.Zero)
+            if (ttl <= TimeSpan.Zero)
             {
                 // ConsoleApplyStateFilter not called yet, or current job state is not final.
                 // Either way, there's no need to expire console here.

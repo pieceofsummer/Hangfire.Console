@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>Job console for Hangfire</Description>
     <AssemblyTitle>Hangfire.Console</AssemblyTitle>
-    <VersionPrefix>1.3.1</VersionPrefix>
+    <VersionPrefix>1.3.2</VersionPrefix>
     <Authors>Alexey Skalozub</Authors>
     <TargetFrameworks>netstandard1.3;net45</TargetFrameworks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -11,9 +11,61 @@
     <AssemblyName>Hangfire.Console</AssemblyName>
     <PackageId>Hangfire.Console</PackageId>
     <PackageTags>hangfire;console;logging</PackageTags>
-    <PackageReleaseNotes>- Consoles are now expired along with parent job by default!
-- Added **FollowJobRetentionPolicy** option to switch between old/new expiration modes
-- Fix compatibility with Hangfire 1.6.11+</PackageReleaseNotes>
+    <PackageReleaseNotes>
+      v1.3.2:
+      • Fixed console expiration for some storages (e.g. Hangfire.Redis.StackExchange)
+
+      v1.3.1:
+      • Fixed compatibility with Hangfire 1.6.11+
+
+      v1.3.0:
+      • Consoles are now expired along with parent job by default!
+      • Added **FollowJobRetentionPolicy** option to switch between old/new expiration modes
+
+      v1.2.1:
+      • Added Monitoring API
+
+      v1.2.0:
+      • Added hyperlink detection
+
+      v1.1.7:
+      • Fixed line ordering issue
+
+      v1.1.6:
+      • Changed key format to support single-keyspace storages, like Hangfire.Redis
+
+      v1.1.5:
+      • Allow WriteLine/WriteProgressBar calls with a null PerformContext
+
+      v1.1.4:
+      • Added support of fractional progress values
+      • Added WithProgress() extension methods for tracking enumeration progress in for-each loops
+
+      v1.1.3:
+      • Fixed ugly font on OS X
+      • Fixed animation lags on all major browsers
+
+      v1.1.2:
+      • Added support for long messages
+      • Refactor for better testability
+
+      v1.1.1:
+      • Don't show current console while there's no lines
+
+      v1.1.0:
+      • Added progress bars
+
+      v1.0.2:
+      • Added some more configuration options
+      • Fixed occasional duplicate lines collapsing
+
+      v1.0.1:
+      • Fixed compatibility issues with storages losing DateTime precision (like MongoDB)
+      • Improved client-side experience
+      
+      v1.0.0:
+      • Initial release
+    </PackageReleaseNotes>
     <PackageIconUrl>https://raw.githubusercontent.com/pieceofsummer/Hangfire.Console/master/hangfire.console.png</PackageIconUrl>
     <PackageLicenseUrl>https://raw.githubusercontent.com/pieceofsummer/Hangfire.Console/master/LICENSE.md</PackageLicenseUrl>
     <RepositoryType>git</RepositoryType>

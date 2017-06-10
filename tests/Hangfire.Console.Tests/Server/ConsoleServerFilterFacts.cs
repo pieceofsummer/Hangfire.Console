@@ -82,6 +82,8 @@ namespace Hangfire.Console.Tests.Server
         {
             _connection.Setup(x => x.GetStateData("1"))
                 .Returns(CreateState(ProcessingState.StateName));
+            _connection.Setup(x => x.GetHashTtl(It.IsAny<string>()))
+                .Returns(TimeSpan.FromSeconds(1));
 
             var performer = new BackgroundJobPerformer(CreateJobFilterProvider(true));
             var context = CreatePerformContext();
@@ -94,6 +96,48 @@ namespace Hangfire.Console.Tests.Server
             _connection.Verify(x => x.GetHashTtl(It.IsAny<string>()));
             
             _transaction.Verify(x => x.Commit());
+        }
+
+        [Fact]
+        public void CreatesConsoleContext_IfStateIsProcessing_DoesNotFixExpiration_IfNegativeTtl_AndFollowsJobRetention()
+        {
+            _connection.Setup(x => x.GetStateData("1"))
+                .Returns(CreateState(ProcessingState.StateName));
+            _connection.Setup(x => x.GetHashTtl(It.IsAny<string>()))
+                .Returns(TimeSpan.FromSeconds(-1));
+
+            var performer = new BackgroundJobPerformer(CreateJobFilterProvider(true));
+            var context = CreatePerformContext();
+
+            performer.Perform(context);
+
+            var consoleContext = ConsoleContext.FromPerformContext(context);
+            Assert.NotNull(consoleContext);
+
+            _connection.Verify(x => x.GetHashTtl(It.IsAny<string>()));
+
+            _transaction.Verify(x => x.Commit(), Times.Never);
+        }
+
+        [Fact]
+        public void CreatesConsoleContext_IfStateIsProcessing_DoesNotFixExpiration_IfZeroTtl_AndFollowsJobRetention()
+        {
+            _connection.Setup(x => x.GetStateData("1"))
+                .Returns(CreateState(ProcessingState.StateName));
+            _connection.Setup(x => x.GetHashTtl(It.IsAny<string>()))
+                .Returns(TimeSpan.Zero);
+
+            var performer = new BackgroundJobPerformer(CreateJobFilterProvider(true));
+            var context = CreatePerformContext();
+
+            performer.Perform(context);
+
+            var consoleContext = ConsoleContext.FromPerformContext(context);
+            Assert.NotNull(consoleContext);
+
+            _connection.Verify(x => x.GetHashTtl(It.IsAny<string>()));
+
+            _transaction.Verify(x => x.Commit(), Times.Never);
         }
 
         [Fact]
