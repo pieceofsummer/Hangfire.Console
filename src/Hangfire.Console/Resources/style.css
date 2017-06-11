@@ -141,6 +141,7 @@ body {
         overflow: hidden;
 
         width: 0;
+        margin-left: 10px;
         animation: loadingDots 1s infinite steps(4);
         transform: translate(-1px, -1.4em);
     }
