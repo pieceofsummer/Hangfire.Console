@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>Job console for Hangfire</Description>
     <AssemblyTitle>Hangfire.Console</AssemblyTitle>
-    <VersionPrefix>1.3.2</VersionPrefix>
+    <VersionPrefix>1.3.3</VersionPrefix>
     <Authors>Alexey Skalozub</Authors>
     <TargetFrameworks>netstandard1.3;net45</TargetFrameworks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -12,6 +12,9 @@
     <PackageId>Hangfire.Console</PackageId>
     <PackageTags>hangfire;console;logging</PackageTags>
     <PackageReleaseNotes>
+      v1.3.3:
+      • Eliminated unnecessary state filter executions 
+
       v1.3.2:
       • Fixed console expiration for some storages (e.g. Hangfire.Redis.StackExchange)
 
@@ -62,7 +65,7 @@
       v1.0.1:
       • Fixed compatibility issues with storages losing DateTime precision (like MongoDB)
       • Improved client-side experience
-      
+
       v1.0.0:
       • Initial release
     </PackageReleaseNotes>
