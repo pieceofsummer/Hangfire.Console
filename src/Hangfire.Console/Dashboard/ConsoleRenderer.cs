@@ -35,16 +35,23 @@ namespace Hangfire.Console.Dashboard
         }
 
         /// <summary>
-        /// Autodetects hyperlinks and wraps them into Anchor tag
+        /// Renders text string (with possible hyperlinks) into buffer
         /// </summary>
-        /// <param name="source">String to detect links in</param>
-        /// <returns>String with hyperlinks</returns>
-        public static string DetectLinks(string source)
+        /// <param name="buffer">Buffer</param>
+        /// <param name="text">Text to render</param>
+        public static void RenderText(StringBuilder buffer, string text)
         {
-            if (string.IsNullOrEmpty(source)) return source;
+            if (string.IsNullOrEmpty(text)) return;
+            
+            var start = 0;
 
-            return LinkDetector.Replace(source, m => 
+            foreach (Match m in LinkDetector.Matches(text))
             {
+                if (m.Index > start)
+                {
+                    buffer.Append(Helper.HtmlEncode(text.Substring(start, m.Index - start)));
+                }
+
                 string schema = "";
                 if (!m.Groups["schema"].Success)
                 {
@@ -52,8 +59,18 @@ namespace Hangfire.Console.Dashboard
                     schema = m.Value.StartsWith("ftp.", StringComparison.OrdinalIgnoreCase) ? "ftp://" : "http://";
                 }
 
-                return $"<a target=\"_blank\" rel=\"nofollow\" href=\"{schema}{m.Value}\">{m.Value}</a>";
-            });
+                buffer.Append("<a target=\"_blank\" rel=\"nofollow\" href=\"")
+                      .Append(schema).Append(m.Value).Append("\">")
+                      .Append(Helper.HtmlEncode(m.Value))
+                      .Append("</a>");
+
+                start = m.Index + m.Length;
+            }
+
+            if (start < text.Length)
+            {
+                buffer.Append(Helper.HtmlEncode(text.Substring(start)));
+            }
         }
 
         /// <summary>
@@ -89,7 +106,7 @@ namespace Hangfire.Console.Dashboard
             }
             else
             {
-                builder.Append(DetectLinks(Helper.HtmlEncode(line.Message)));
+                RenderText(builder, line.Message);
             }
 
             builder.Append("</div>");

@@ -26,6 +26,50 @@ namespace Hangfire.Console.Tests.Dashboard
         }
 
         [Fact]
+        public void RenderText_Empty()
+        {
+            var text = "";
+            var builder = new StringBuilder();
+
+            ConsoleRenderer.RenderText(builder, text);
+
+            Assert.Equal("", builder.ToString());
+        }
+        
+        [Fact]
+        public void RenderText_Simple()
+        {
+            var text = "test";
+            var builder = new StringBuilder();
+
+            ConsoleRenderer.RenderText(builder, text);
+
+            Assert.Equal("test", builder.ToString());
+        }
+        
+        [Fact]
+        public void RenderText_HtmlEncode()
+        {
+            var text = "<bolts & nuts>";
+            var builder = new StringBuilder();
+
+            ConsoleRenderer.RenderText(builder, text);
+
+            Assert.Equal("&lt;bolts &amp; nuts&gt;", builder.ToString());
+        }
+        
+        [Fact]
+        public void RenderText_Hyperlink()
+        {
+            var text = "go to http://localhost?a=1&b=2 & enjoy!";
+            var builder = new StringBuilder();
+
+            ConsoleRenderer.RenderText(builder, text);
+
+            Assert.Equal("go to <a target=\"_blank\" rel=\"nofollow\" href=\"http://localhost?a=1&b=2\">http://localhost?a=1&amp;b=2</a> &amp; enjoy!", builder.ToString());
+        }
+
+        [Fact]
         public void RenderLine_Basic()
         {
             var line = new ConsoleLine() { TimeOffset = 0, Message = "test" };
@@ -35,7 +79,7 @@ namespace Hangfire.Console.Tests.Dashboard
 
             Assert.Equal("<div class=\"line\"><span data-moment-title=\"1451606400\">+ <1ms</span>test</div>", builder.ToString());
         }
-
+        
         [Fact]
         public void RenderLine_WithOffset()
         {
