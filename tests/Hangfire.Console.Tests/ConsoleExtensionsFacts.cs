@@ -6,6 +6,7 @@ using Hangfire.Server;
 using Hangfire.Storage;
 using Moq;
 using System;
+using System.Linq;
 using Xunit;
 
 namespace Hangfire.Console.Tests
@@ -74,6 +75,25 @@ namespace Hangfire.Console.Tests
             
             Assert.IsType<DefaultProgressBar>(progressBar);
             _transaction.Verify(x => x.Commit());
+        }
+
+        [Fact]
+        public void WithProgressBarIncrements_CommitsGivenTimes_IfConsoleCreated()
+        {
+            var context = CreatePerformContext();
+            context.Items["ConsoleContext"] = CreateConsoleContext(context);
+
+            var progressBar = ConsoleExtensions.WriteProgressBar(context);
+            int[] numbers = Enumerable.Repeat(1, 1000).ToArray();
+
+            foreach (int num in numbers.WithProgressIncrements(progressBar, 5))
+            {
+                // do something, don't want the loop being optimised out
+                System.Diagnostics.Debug.Write(num);
+            }
+
+            Assert.IsType<DefaultProgressBar>(progressBar);
+            _transaction.Verify(x => x.Commit(), Times.Exactly(21));
         }
 
         [Fact]
