@@ -7,6 +7,14 @@ namespace Hangfire.Console.Progress
     /// </summary>
     internal class NoOpProgressBar : IProgressBar
     {
+        private double _maxValue = 100.0;
+        public NoOpProgressBar(double maxValue)
+        {
+            _maxValue = maxValue;
+        }
+
+        public NoOpProgressBar() { }
+
         public void SetValue(int value)
         {
             SetValue((double)value);
@@ -16,8 +24,8 @@ namespace Hangfire.Console.Progress
         {
             value = Math.Round(value, 1);
 
-            if (value < 0 || value > 100)
-                throw new ArgumentOutOfRangeException(nameof(value), "Value should be in range 0..100");
+            if (value < 0 || value > _maxValue)
+                throw new ArgumentOutOfRangeException(nameof(value), "Value should be in range 0.." + _maxValue);
         }
     }
 }

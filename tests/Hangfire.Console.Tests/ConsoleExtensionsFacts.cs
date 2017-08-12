@@ -58,7 +58,7 @@ namespace Hangfire.Console.Tests
         [Fact]
         public void WriteProgressBar_ReturnsNoOp_IfContextIsNull()
         {
-            var progressBar = ConsoleExtensions.WriteProgressBar(null);
+            var progressBar = ConsoleExtensions.WriteProgressBar(null, 0);
 
             Assert.IsType<NoOpProgressBar>(progressBar);
             _transaction.Verify(x => x.Commit(), Times.Never);
@@ -70,7 +70,7 @@ namespace Hangfire.Console.Tests
             var context = CreatePerformContext();
             context.Items["ConsoleContext"] = CreateConsoleContext(context);
 
-            var progressBar = ConsoleExtensions.WriteProgressBar(context);
+            var progressBar = ConsoleExtensions.WriteProgressBar(context, 0);
             
             Assert.IsType<DefaultProgressBar>(progressBar);
             _transaction.Verify(x => x.Commit());
@@ -81,7 +81,39 @@ namespace Hangfire.Console.Tests
         {
             var context = CreatePerformContext();
 
-            var progressBar = ConsoleExtensions.WriteProgressBar(context);
+            var progressBar = ConsoleExtensions.WriteProgressBar(context, 0);
+
+            Assert.IsType<NoOpProgressBar>(progressBar);
+            _transaction.Verify(x => x.Commit(), Times.Never);
+        }
+
+        [Fact]
+        public void WriteProgressBarMaxValue_ReturnsNoOp_IfContextIsNull()
+        {
+            var progressBar = ConsoleExtensions.WriteProgressBar(null, 0.0);
+
+            Assert.IsType<NoOpProgressBar>(progressBar);
+            _transaction.Verify(x => x.Commit(), Times.Never);
+        }
+
+        [Fact]
+        public void WriteProgressBar_ReturnsProgressBarMaxValue_IfConsoleCreated()
+        {
+            var context = CreatePerformContext();
+            context.Items["ConsoleContext"] = CreateConsoleContext(context);
+
+            var progressBar = ConsoleExtensions.WriteProgressBar(context, 0.0, 100.0);
+
+            Assert.IsType<DefaultProgressBar>(progressBar);
+            _transaction.Verify(x => x.Commit());
+        }
+
+        [Fact]
+        public void WriteProgressBarMaxValue_ReturnsNoOp_IfConsoleNotCreated()
+        {
+            var context = CreatePerformContext();
+
+            var progressBar = ConsoleExtensions.WriteProgressBar(context, 0.0);
 
             Assert.IsType<NoOpProgressBar>(progressBar);
             _transaction.Verify(x => x.Commit(), Times.Never);

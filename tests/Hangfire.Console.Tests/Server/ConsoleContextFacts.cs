@@ -97,7 +97,19 @@ namespace Hangfire.Console.Tests.Server
             _storage.Verify(x => x.AddLine(It.IsAny<ConsoleId>(), It.IsAny<ConsoleLine>()));
             Assert.NotNull(progressBar);
         }
-        
+
+        [Fact]
+        public void WriteProgressBarMaxValue_WritesDefaultValue_AndReturnsNonNull()
+        {
+            var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+            var context = new ConsoleContext(consoleId, _storage.Object);
+
+            var progressBar = context.WriteProgressBar(0.0, 100.0, null);
+
+            _storage.Verify(x => x.AddLine(It.IsAny<ConsoleId>(), It.IsAny<ConsoleLine>()));
+            Assert.NotNull(progressBar);
+        }
+
         [Fact]
         public void Expire_ReallyExpiresLines()
         {

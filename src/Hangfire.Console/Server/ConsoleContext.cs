@@ -67,7 +67,19 @@ namespace Hangfire.Console.Server
             
             _storage.AddLine(_consoleId, line);
         }
-        
+
+        internal IProgressBar WriteProgressBar(double value, double maxValue, ConsoleTextColor color)
+        {
+            var progressBarId = Interlocked.Increment(ref _nextProgressBarId);
+
+            var progressBar = new DefaultProgressBar(this, progressBarId.ToString(CultureInfo.InvariantCulture), color, maxValue);
+
+            // set initial value
+            progressBar.SetValue(value);
+
+            return progressBar;
+        }
+
         public void WriteLine(string value)
         {
             AddLine(new ConsoleLine() { Message = value ?? "", TextColor = TextColor });
@@ -77,7 +89,7 @@ namespace Hangfire.Console.Server
         {
             var progressBarId = Interlocked.Increment(ref _nextProgressBarId);
 
-            var progressBar = new DefaultProgressBar(this, progressBarId.ToString(CultureInfo.InvariantCulture), color);
+            var progressBar = new DefaultProgressBar(this, progressBarId.ToString(CultureInfo.InvariantCulture), color, 100.0);
 
             // set initial value
             progressBar.SetValue(value);
