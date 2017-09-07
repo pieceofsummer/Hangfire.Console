@@ -56,9 +56,20 @@ namespace Hangfire.Console
         /// <param name="value">String</param>
         public static void WriteLine(this PerformContext context, string value)
         {
-            ConsoleContext.FromPerformContext(context)?.WriteLine(value);
+            ConsoleContext.FromPerformContext(context)?.WriteLine(value, null);
         }
-
+        
+        /// <summary>
+        /// Adds a string to console.
+        /// </summary>
+        /// <param name="context">Context</param>
+        /// <param name="color">Text color</param>
+        /// <param name="value">String</param>
+        public static void WriteLine(this PerformContext context, ConsoleTextColor color, string value)
+        {
+            ConsoleContext.FromPerformContext(context)?.WriteLine(value, color);
+        }
+        
         /// <summary>
         /// Adds an empty line to console.
         /// </summary>
@@ -112,5 +123,57 @@ namespace Hangfire.Console
         /// <param name="args">Arguments</param>
         public static void WriteLine(this PerformContext context, string format, params object[] args)
             => WriteLine(context, string.Format(format, args));
+        
+        /// <summary>
+        /// Adds a value to a console.
+        /// </summary>
+        /// <param name="context">Context</param>
+        /// <param name="color">Text color</param>
+        /// <param name="value">Value</param>
+        public static void WriteLine(this PerformContext context, ConsoleTextColor color, object value)
+            => WriteLine(context, color, value?.ToString());
+
+        /// <summary>
+        /// Adds a formatted string to a console.
+        /// </summary>
+        /// <param name="context">Context</param>
+        /// <param name="color">Text color</param>
+        /// <param name="format">Format string</param>
+        /// <param name="arg0">Argument</param>
+        public static void WriteLine(this PerformContext context, ConsoleTextColor color, string format, object arg0)
+            => WriteLine(context, color, string.Format(format, arg0));
+
+        /// <summary>
+        /// Adds a formatted string to a console.
+        /// </summary>
+        /// <param name="context">Context</param>
+        /// <param name="color">Text color</param>
+        /// <param name="format">Format string</param>
+        /// <param name="arg0">Argument</param>
+        /// <param name="arg1">Argument</param>
+        public static void WriteLine(this PerformContext context, ConsoleTextColor color, string format, object arg0, object arg1)
+            => WriteLine(context, color, string.Format(format, arg0, arg1));
+
+        /// <summary>
+        /// Adds a formatted string to a console.
+        /// </summary>
+        /// <param name="context">Context</param>
+        /// <param name="color">Text color</param>
+        /// <param name="format">Format string</param>
+        /// <param name="arg0">Argument</param>
+        /// <param name="arg1">Argument</param>
+        /// <param name="arg2">Argument</param>
+        public static void WriteLine(this PerformContext context, ConsoleTextColor color, string format, object arg0, object arg1, object arg2)
+            => WriteLine(context, color, string.Format(format, arg0, arg1, arg2));
+
+        /// <summary>
+        /// Adds a formatted string to a console.
+        /// </summary>
+        /// <param name="context">Context</param>
+        /// <param name="color">Text color</param>
+        /// <param name="format">Format string</param>
+        /// <param name="args">Arguments</param>
+        public static void WriteLine(this PerformContext context, ConsoleTextColor color, string format, params object[] args)
+            => WriteLine(context, color, string.Format(format, args));
     }
 }

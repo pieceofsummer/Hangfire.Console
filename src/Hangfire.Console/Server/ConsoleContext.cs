@@ -68,9 +68,9 @@ namespace Hangfire.Console.Server
             _storage.AddLine(_consoleId, line);
         }
         
-        public void WriteLine(string value)
+        public void WriteLine(string value, ConsoleTextColor color)
         {
-            AddLine(new ConsoleLine() { Message = value ?? "", TextColor = TextColor });
+            AddLine(new ConsoleLine() { Message = value ?? "", TextColor = color ?? TextColor });
         }
 
         public IProgressBar WriteProgressBar(int value, ConsoleTextColor color)

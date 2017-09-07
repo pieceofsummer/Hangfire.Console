@@ -81,13 +81,24 @@ namespace Hangfire.Console.Tests.Server
             var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
             var context = new ConsoleContext(consoleId, _storage.Object);
 
-            context.AddLine(new ConsoleLine() { TimeOffset = 0, Message = "line" });
+            context.WriteLine("line", null);
 
-            _storage.Verify(x => x.AddLine(It.IsAny<ConsoleId>(), It.IsAny<ConsoleLine>()));
+            _storage.Verify(x => x.AddLine(It.IsAny<ConsoleId>(), It.Is<ConsoleLine>(_ => _.Message == "line" && _.TextColor == null)));
         }
 
         [Fact]
-        public void WriteProgressBar_WritesDefaultValue_AndReturnsNonNull()
+        public void WriteLine_ReallyAddsLineWithColor()
+        {
+            var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+            var context = new ConsoleContext(consoleId, _storage.Object);
+
+            context.WriteLine("line", ConsoleTextColor.Red);
+
+            _storage.Verify(x => x.AddLine(It.IsAny<ConsoleId>(), It.Is<ConsoleLine>(_ => _.Message == "line" && _.TextColor == ConsoleTextColor.Red)));
+        }
+
+        [Fact]
+        public void WriteProgressBar_WritesDefaults_AndReturnsNonNull()
         {
             var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
             var context = new ConsoleContext(consoleId, _storage.Object);
@@ -97,7 +108,31 @@ namespace Hangfire.Console.Tests.Server
             _storage.Verify(x => x.AddLine(It.IsAny<ConsoleId>(), It.IsAny<ConsoleLine>()));
             Assert.NotNull(progressBar);
         }
-        
+
+        [Fact]
+        public void WriteProgressBar_WritesInitialValue_AndReturnsNonNull()
+        {
+            var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+            var context = new ConsoleContext(consoleId, _storage.Object);
+
+            var progressBar = context.WriteProgressBar(5, null);
+
+            _storage.Verify(x => x.AddLine(It.IsAny<ConsoleId>(), It.Is<ConsoleLine>(_ => _.ProgressValue == 5)));
+            Assert.NotNull(progressBar);
+        }
+
+        [Fact]
+        public void WriteProgressBar_WritesProgressBarColor_AndReturnsNonNull()
+        {
+            var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+            var context = new ConsoleContext(consoleId, _storage.Object);
+
+            var progressBar = context.WriteProgressBar(0, ConsoleTextColor.Red);
+
+            _storage.Verify(x => x.AddLine(It.IsAny<ConsoleId>(), It.Is<ConsoleLine>(_ => _.TextColor == ConsoleTextColor.Red)));
+            Assert.NotNull(progressBar);
+        }
+
         [Fact]
         public void Expire_ReallyExpiresLines()
         {

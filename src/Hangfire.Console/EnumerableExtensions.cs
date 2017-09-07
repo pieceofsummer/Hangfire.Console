@@ -1,4 +1,5 @@
 ﻿using Hangfire.Console.Progress;
+using Hangfire.Server;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ namespace Hangfire.Console
     public static class EnumerableExtensions
     {
         /// <summary>
-        /// Returns a <see cref="IEnumerable{T}"/> reporting enumeration progress.
+        /// Returns an <see cref="IEnumerable{T}"/> reporting enumeration progress.
         /// </summary>
         /// <typeparam name="T">Item type</typeparam>
         /// <param name="enumerable">Source enumerable</param>
@@ -36,7 +37,7 @@ namespace Hangfire.Console
         }
 
         /// <summary>
-        /// Returns a <see cref="IEnumerable"/> reporting enumeration progress.
+        /// Returns an <see cref="IEnumerable"/> reporting enumeration progress.
         /// </summary>
         /// <param name="enumerable">Source enumerable</param>
         /// <param name="progressBar">Progress bar</param>
@@ -53,6 +54,31 @@ namespace Hangfire.Console
             }
 
             return new ProgressEnumerable(enumerable, progressBar, count);
+        }
+        
+        /// <summary>
+        /// Returns an <see cref="IEnumerable{T}"/> reporting enumeration progress.
+        /// </summary>
+        /// <typeparam name="T">Item type</typeparam>
+        /// <param name="enumerable">Source enumerable</param>
+        /// <param name="context">Perform context</param>
+        /// <param name="color">Progress bar color</param>
+        /// <param name="count">Item count</param>
+        public static IEnumerable<T> WithProgress<T>(this IEnumerable<T> enumerable, PerformContext context, ConsoleTextColor color = null, int count = -1)
+        {
+            return WithProgress(enumerable, context.WriteProgressBar(0, color), count);
+        }
+
+        /// <summary>
+        /// Returns ab <see cref="IEnumerable"/> reporting enumeration progress.
+        /// </summary>
+        /// <param name="enumerable">Source enumerable</param>
+        /// <param name="context">Perform context</param>
+        /// <param name="color">Progress bar color</param>
+        /// <param name="count">Item count</param>
+        public static IEnumerable WithProgress(this IEnumerable enumerable, PerformContext context, ConsoleTextColor color = null, int count = -1)
+        {
+            return WithProgress(enumerable, context.WriteProgressBar(0, color), count);
         }
     }
 }
