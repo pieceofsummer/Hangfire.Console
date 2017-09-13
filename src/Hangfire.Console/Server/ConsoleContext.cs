@@ -73,11 +73,11 @@ namespace Hangfire.Console.Server
             AddLine(new ConsoleLine() { Message = value ?? "", TextColor = color ?? TextColor });
         }
 
-        public IProgressBar WriteProgressBar(int value, ConsoleTextColor color)
+        public IProgressBar WriteProgressBar(string name, double value, ConsoleTextColor color)
         {
             var progressBarId = Interlocked.Increment(ref _nextProgressBarId);
 
-            var progressBar = new DefaultProgressBar(this, progressBarId.ToString(CultureInfo.InvariantCulture), color);
+            var progressBar = new DefaultProgressBar(this, progressBarId.ToString(CultureInfo.InvariantCulture), name, color);
 
             // set initial value
             progressBar.SetValue(value);

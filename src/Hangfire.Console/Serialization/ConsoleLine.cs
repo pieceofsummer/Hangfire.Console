@@ -40,5 +40,11 @@ namespace Hangfire.Console.Serialization
         /// </summary>
         [JsonProperty("p", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public double? ProgressValue { get; set; }
+
+        /// <summary>
+        /// Optional name for a progress bar
+        /// </summary>
+        [JsonProperty("n", DefaultValueHandling = DefaultValueHandling.Ignore)]
+        public string ProgressName { get; set; }
     }
 }

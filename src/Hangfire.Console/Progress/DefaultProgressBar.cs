@@ -1,6 +1,7 @@
 ﻿using Hangfire.Console.Serialization;
 using Hangfire.Console.Server;
 using System;
+using System.Threading;
 
 namespace Hangfire.Console.Progress
 {
@@ -11,10 +12,11 @@ namespace Hangfire.Console.Progress
     {
         private readonly ConsoleContext _context;
         private readonly string _progressBarId;
+        private string _name;
         private string _color;
         private double _value;
 
-        internal DefaultProgressBar(ConsoleContext context, string progressBarId, string color)
+        internal DefaultProgressBar(ConsoleContext context, string progressBarId, string name, string color)
         {
             if (context == null)
                 throw new ArgumentNullException(nameof(context));
@@ -23,6 +25,7 @@ namespace Hangfire.Console.Progress
                
             _context = context;
             _progressBarId = progressBarId;
+            _name = name;
             _color = color;
             _value = -1;
         }
@@ -39,11 +42,11 @@ namespace Hangfire.Console.Progress
             if (value < 0 || value > 100)
                 throw new ArgumentOutOfRangeException(nameof(value), "Value should be in range 0..100");
 
-            if (_value == value) return;
+            if (Interlocked.Exchange(ref _value, value) == value) return;
             
-            _context.AddLine(new ConsoleLine() { Message = _progressBarId, ProgressValue = value, TextColor = _color });
+            _context.AddLine(new ConsoleLine() { Message = _progressBarId, ProgressName = _name, ProgressValue = value, TextColor = _color });
 
-            _value = value;
+            _name = null; // write name only once
             _color = null; // write color only once
         }
     }

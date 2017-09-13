@@ -80,5 +80,32 @@ namespace Hangfire.Console
         {
             return WithProgress(enumerable, context.WriteProgressBar(0, color), count);
         }
+        
+        /// <summary>
+        /// Returns an <see cref="IEnumerable{T}"/> reporting enumeration progress.
+        /// </summary>
+        /// <typeparam name="T">Item type</typeparam>
+        /// <param name="enumerable">Source enumerable</param>
+        /// <param name="context">Perform context</param>
+        /// <param name="name">Progress bar name</param>
+        /// <param name="color">Progress bar color</param>
+        /// <param name="count">Item count</param>
+        public static IEnumerable<T> WithProgress<T>(this IEnumerable<T> enumerable, PerformContext context, string name, ConsoleTextColor color = null, int count = -1)
+        {
+            return WithProgress(enumerable, context.WriteProgressBar(name, 0, color), count);
+        }
+
+        /// <summary>
+        /// Returns ab <see cref="IEnumerable"/> reporting enumeration progress.
+        /// </summary>
+        /// <param name="enumerable">Source enumerable</param>
+        /// <param name="context">Perform context</param>
+        /// <param name="name">Progress bar name</param>
+        /// <param name="color">Progress bar color</param>
+        /// <param name="count">Item count</param>
+        public static IEnumerable WithProgress(this IEnumerable enumerable, PerformContext context, string name, ConsoleTextColor color = null, int count = -1)
+        {
+            return WithProgress(enumerable, context.WriteProgressBar(name, 0, color), count);
+        }
     }
 }

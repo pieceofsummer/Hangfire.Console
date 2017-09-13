@@ -98,7 +98,14 @@ namespace Hangfire.Console.Dashboard
 
             builder.Append(">");
 
-            builder.Append(Helper.MomentTitle(timestamp + offset, Helper.ToHumanDuration(offset)));
+            if (isProgressBar && !string.IsNullOrWhiteSpace(line.ProgressName))
+            {
+                builder.Append(Helper.MomentTitle(timestamp + offset, Helper.HtmlEncode(line.ProgressName)));
+            }
+            else
+            {
+                builder.Append(Helper.MomentTitle(timestamp + offset, Helper.ToHumanDuration(offset)));
+            }
 
             if (isProgressBar)
             {

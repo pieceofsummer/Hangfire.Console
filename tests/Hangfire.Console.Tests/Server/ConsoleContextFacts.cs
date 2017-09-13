@@ -103,19 +103,31 @@ namespace Hangfire.Console.Tests.Server
             var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
             var context = new ConsoleContext(consoleId, _storage.Object);
 
-            var progressBar = context.WriteProgressBar(0, null);
+            var progressBar = context.WriteProgressBar(null, 0, null);
 
             _storage.Verify(x => x.AddLine(It.IsAny<ConsoleId>(), It.IsAny<ConsoleLine>()));
             Assert.NotNull(progressBar);
         }
+        
+        [Fact]
+        public void WriteProgressBar_WritesName_AndReturnsNonNull()
+        {
+            var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+            var context = new ConsoleContext(consoleId, _storage.Object);
 
+            var progressBar = context.WriteProgressBar("test", 0, null);
+
+            _storage.Verify(x => x.AddLine(It.IsAny<ConsoleId>(), It.Is<ConsoleLine>(_ => _.ProgressName == "test")));
+            Assert.NotNull(progressBar);
+        }
+        
         [Fact]
         public void WriteProgressBar_WritesInitialValue_AndReturnsNonNull()
         {
             var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
             var context = new ConsoleContext(consoleId, _storage.Object);
 
-            var progressBar = context.WriteProgressBar(5, null);
+            var progressBar = context.WriteProgressBar(null, 5, null);
 
             _storage.Verify(x => x.AddLine(It.IsAny<ConsoleId>(), It.Is<ConsoleLine>(_ => _.ProgressValue == 5)));
             Assert.NotNull(progressBar);
@@ -127,7 +139,7 @@ namespace Hangfire.Console.Tests.Server
             var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
             var context = new ConsoleContext(consoleId, _storage.Object);
 
-            var progressBar = context.WriteProgressBar(0, ConsoleTextColor.Red);
+            var progressBar = context.WriteProgressBar(null, 0, ConsoleTextColor.Red);
 
             _storage.Verify(x => x.AddLine(It.IsAny<ConsoleId>(), It.Is<ConsoleLine>(_ => _.TextColor == ConsoleTextColor.Red)));
             Assert.NotNull(progressBar);

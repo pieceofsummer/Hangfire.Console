@@ -46,7 +46,19 @@ namespace Hangfire.Console
         /// <param name="color">Progress bar color</param>
         public static IProgressBar WriteProgressBar(this PerformContext context, int value = 0, ConsoleTextColor color = null)
         {
-            return ConsoleContext.FromPerformContext(context)?.WriteProgressBar(value, color) ?? new NoOpProgressBar();
+            return ConsoleContext.FromPerformContext(context)?.WriteProgressBar(null, value, color) ?? new NoOpProgressBar();
+        }
+
+        /// <summary>
+        /// Adds an updateable named progress bar to console.
+        /// </summary>
+        /// <param name="context">Context</param>
+        /// <param name="name">Name</param>
+        /// <param name="value">Initial value</param>
+        /// <param name="color">Progress bar color</param>
+        public static IProgressBar WriteProgressBar(this PerformContext context, string name, double value = 0, ConsoleTextColor color = null)
+        {
+            return ConsoleContext.FromPerformContext(context)?.WriteProgressBar(name, value, color) ?? new NoOpProgressBar();
         }
 
         /// <summary>
