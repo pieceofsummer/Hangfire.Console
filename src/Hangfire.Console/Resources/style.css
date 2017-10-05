@@ -20,6 +20,30 @@ body {
     overflow-y: hidden; /* may be changed to 'auto' for fixed-height console */
 }
 
+.console.collapsed {
+    font-family: unset !important;
+    background-color: unset !important;
+    pointer-events: none;
+}
+
+.console.collapsed:before {
+    content: "Show outdated console";
+    margin-left: 10px;
+    color: #337ab7 !important;
+    cursor: pointer;
+    pointer-events: all;
+}
+
+@media only screen and (min-width: 768px) {
+    .console.collapsed:before {
+        margin-left: 190px;
+    }
+}
+
+.console.collapsed:hover:before {
+    text-decoration: underline;
+}
+
 .console .line-buffer {
     background-color: #0d3163;
     color: #ffffff;
@@ -27,6 +51,10 @@ body {
     margin: 0;
     border: none;
     padding: 10px;
+}
+
+.console.collapsed .line-buffer {
+    display: none;
 }
 
 .console .line-buffer:empty {

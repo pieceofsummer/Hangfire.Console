@@ -139,7 +139,7 @@
             if (next < 0) {
                 this._endPoll();
 
-                if (next == -1) {
+                if (next === -1) {
                     console.log("job state change detected");
                     location.reload();
                 }
@@ -186,6 +186,13 @@ $(function () {
         if (index === 0) {
             // poll on the first console
             c.poll();
+        } else if ($this.find(".line").length > 0) {
+            // collapse outdated consoles
+            $this.addClass("collapsed");
         }
+    });
+
+    $(".container").on("click", ".console.collapsed", function() {
+        $(this).removeClass("collapsed");
     });
 });

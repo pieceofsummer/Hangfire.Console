@@ -12,6 +12,10 @@
     <PackageId>Hangfire.Console</PackageId>
     <PackageTags>hangfire;console;logging</PackageTags>
     <PackageReleaseNotes>History:
+      v1.3.7:
+      • Prevent calling UseConsole() twice
+      • Collapse outdated consoles
+
       v1.3.6:
       • Make progress bars' SetValue thread-safe
       • Add support for named progress bars
