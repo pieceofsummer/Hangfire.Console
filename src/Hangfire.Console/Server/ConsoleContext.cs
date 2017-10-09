@@ -55,17 +55,20 @@ namespace Hangfire.Console.Server
             if (line == null)
                 throw new ArgumentNullException(nameof(line));
 
-            line.TimeOffset = Math.Round((DateTime.UtcNow - _consoleId.DateValue).TotalSeconds, 3);
-
-            if (_lastTimeOffset >= line.TimeOffset)
+            lock (this)
             {
-                // prevent duplicate lines collapsing
-                line.TimeOffset = _lastTimeOffset + 0.0001;
-            }
+                line.TimeOffset = Math.Round((DateTime.UtcNow - _consoleId.DateValue).TotalSeconds, 3);
 
-            _lastTimeOffset = line.TimeOffset;
-            
-            _storage.AddLine(_consoleId, line);
+                if (_lastTimeOffset >= line.TimeOffset)
+                {
+                    // prevent duplicate lines collapsing
+                    line.TimeOffset = _lastTimeOffset + 0.0001;
+                }
+
+                _lastTimeOffset = line.TimeOffset;
+
+                _storage.AddLine(_consoleId, line);
+            }
         }
         
         public void WriteLine(string value, ConsoleTextColor color)
