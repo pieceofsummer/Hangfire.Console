@@ -29,12 +29,6 @@ namespace Hangfire.Console.States
                 return;
             }
 
-            if (context.OldStateName != ProcessingState.StateName)
-            {
-                // Job was not in 'Processing' state, ignore.
-                return;
-            }
-
             var jobDetails = context.Storage.GetMonitoringApi().JobDetails(context.BackgroundJob.Id);
             if (jobDetails == null || jobDetails.History == null)
             {

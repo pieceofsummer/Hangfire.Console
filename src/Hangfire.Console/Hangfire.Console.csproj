@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>Job console for Hangfire</Description>
     <AssemblyTitle>Hangfire.Console</AssemblyTitle>
-    <VersionPrefix>1.3.9</VersionPrefix>
+    <VersionPrefix>1.3.10</VersionPrefix>
     <Authors>Alexey Skalozub</Authors>
     <TargetFrameworks>netstandard1.3;net45</TargetFrameworks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -12,9 +12,12 @@
     <PackageId>Hangfire.Console</PackageId>
     <PackageTags>hangfire;console;logging</PackageTags>
     <PackageReleaseNotes>History:
+      v1.3.10:
+      • Fix expiration issues (#47)
+
       v1.3.9:
       • Relax Newtonsoft.Json dependency version for .NET 4.5
-      
+
       v1.3.8:
       • Fix WriteLine thread-safety issues
 

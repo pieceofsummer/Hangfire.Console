@@ -69,25 +69,6 @@ namespace Hangfire.Console.Tests.States
             
             stateChanger.ChangeState(context);
 
-            _monitoring.Verify(x => x.JobDetails(It.IsAny<string>()), Times.Never);
-            _transaction.Verify(x => x.ExpireSet(It.IsAny<string>(), It.IsAny<TimeSpan>()), Times.Never);
-            _transaction.Verify(x => x.ExpireHash(It.IsAny<string>(), It.IsAny<TimeSpan>()), Times.Never);
-        }
-
-        [Fact]
-        public void DoesNotExpire_IfOldStateWasNotProcessing()
-        {
-            _connection.Setup(x => x.GetJobData("1"))
-                .Returns(CreateJobData(EnqueuedState.StateName));
-            _monitoring.Setup(x => x.JobDetails("1"))
-                .Returns(CreateJobDetails());
-
-            var stateChanger = new BackgroundJobStateChanger(CreateJobFilterProvider());
-            var context = CreateStateChangeContext(new MockSucceededState());
-
-            stateChanger.ChangeState(context);
-
-            _monitoring.Verify(x => x.JobDetails(It.IsAny<string>()), Times.Never);
             _transaction.Verify(x => x.ExpireSet(It.IsAny<string>(), It.IsAny<TimeSpan>()), Times.Never);
             _transaction.Verify(x => x.ExpireHash(It.IsAny<string>(), It.IsAny<TimeSpan>()), Times.Never);
         }
