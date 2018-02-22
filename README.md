@@ -51,6 +51,8 @@ Here's what you can configure:
 - **TextColor** – console default text color (default: #ffffff)
 - **TimestampColor** – timestamp text color (default: #00aad7)
 
+**NOTE**: After you initially add Hangfire.Console (or change the options above) you may need to clear browser cache, as generated CSS/JS can be cached by browser.
+
 ## Log
 
 Hangfire.Console provides extension methods on `PerformContext` object, 
