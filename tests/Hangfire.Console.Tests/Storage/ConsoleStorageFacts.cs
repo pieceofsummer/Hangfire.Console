@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
+using KVP = System.Collections.Generic.KeyValuePair<string, string>;
 
 namespace Hangfire.Console.Tests.Storage
 {
@@ -34,6 +35,14 @@ namespace Hangfire.Console.Tests.Storage
         {
             Assert.Throws<ArgumentNullException>("connection", () => new ConsoleStorage(null));
         }
+        
+        [Fact]
+        public void Ctor_ThrowsException_IfNotImplementsJobStorageConnection()
+        {
+            var dummyConnection = new Mock<IStorageConnection>();
+            
+            Assert.Throws<NotSupportedException>(() => new ConsoleStorage(dummyConnection.Object));
+        }
 
         [Fact]
         public void Dispose_ReallyDisposesConnection()
@@ -52,6 +61,18 @@ namespace Hangfire.Console.Tests.Storage
 
             Assert.Throws<ArgumentNullException>("consoleId", () => storage.InitConsole(null));
         }
+        
+        [Fact]
+        public void InitConsole_ThrowsException_IfNotImplementsJobStorageTransaction()
+        {
+            var dummyTransaction = new Mock<IWriteOnlyTransaction>();
+            _connection.Setup(x => x.CreateWriteTransaction())
+                .Returns(dummyTransaction.Object);
+            
+            var storage = new ConsoleStorage(_connection.Object);
+
+            Assert.Throws<NotSupportedException>(() => storage.InitConsole(_consoleId));
+        }
 
         [Fact]
         public void InitConsole_JobIdIsAddedToHash()
@@ -60,7 +81,9 @@ namespace Hangfire.Console.Tests.Storage
 
             storage.InitConsole(_consoleId);
 
-            _connection.Verify(x => x.SetRangeInHash(_consoleId.GetHashKey(), It.IsAny<IEnumerable<KeyValuePair<string, string>>>()));
+            _connection.Verify(x => x.CreateWriteTransaction(), Times.Once);
+            _transaction.Verify(x => x.SetRangeInHash(_consoleId.GetHashKey(), It2.AnyIs<KVP>(p => p.Key == "jobId")));
+            _transaction.Verify(x => x.Commit(), Times.Once);
         }
 
         [Fact]
@@ -96,8 +119,10 @@ namespace Hangfire.Console.Tests.Storage
             storage.AddLine(_consoleId, line);
 
             Assert.False(line.IsReference);
+            _connection.Verify(x => x.CreateWriteTransaction(), Times.Once);
             _transaction.Verify(x => x.AddToSet(_consoleId.GetSetKey(), It.IsAny<string>(), It.IsAny<double>()));
-            _transaction.Verify(x => x.SetRangeInHash(_consoleId.GetHashKey(), It.IsAny<IEnumerable<KeyValuePair<string, string>>>()), Times.Never);
+            _transaction.Verify(x => x.SetRangeInHash(_consoleId.GetHashKey(), It.IsAny<IEnumerable<KVP>>()), Times.Never);
+            _transaction.Verify(x => x.Commit(), Times.Once);
         }
 
         [Fact]
@@ -116,8 +141,10 @@ namespace Hangfire.Console.Tests.Storage
             storage.AddLine(_consoleId, line);
 
             Assert.True(line.IsReference);
+            _connection.Verify(x => x.CreateWriteTransaction(), Times.Once);
             _transaction.Verify(x => x.AddToSet(_consoleId.GetSetKey(), It.IsAny<string>(), It.IsAny<double>()));
-            _transaction.Verify(x => x.SetRangeInHash(_consoleId.GetHashKey(), It.IsAny<IEnumerable<KeyValuePair<string, string>>>()));
+            _transaction.Verify(x => x.SetRangeInHash(_consoleId.GetHashKey(), It2.AnyIs<KVP>(p => p.Key == line.Message)));
+            _transaction.Verify(x => x.Commit(), Times.Once);
         }
 
         [Fact]
@@ -135,12 +162,10 @@ namespace Hangfire.Console.Tests.Storage
 
             storage.Expire(_consoleId, TimeSpan.FromHours(1));
 
-            _connection.Verify(x => x.CreateWriteTransaction());
-
+            _connection.Verify(x => x.CreateWriteTransaction(), Times.Once);
             _transaction.Verify(x => x.ExpireSet(_consoleId.GetSetKey(), It.IsAny<TimeSpan>()));
             _transaction.Verify(x => x.ExpireHash(_consoleId.GetHashKey(), It.IsAny<TimeSpan>()));
-
-            _transaction.Verify(x => x.Commit());
+            _transaction.Verify(x => x.Commit(), Times.Once);
         }
             
         [Fact]
@@ -150,12 +175,10 @@ namespace Hangfire.Console.Tests.Storage
         
             storage.Expire(_consoleId, TimeSpan.FromHours(1));
 
-            _connection.Verify(x => x.CreateWriteTransaction());
-
+            _connection.Verify(x => x.CreateWriteTransaction(), Times.Once);
             _transaction.Verify(x => x.ExpireSet(_consoleId.GetOldConsoleKey(), It.IsAny<TimeSpan>()));
             _transaction.Verify(x => x.ExpireHash(_consoleId.GetOldConsoleKey(), It.IsAny<TimeSpan>()));
-
-            _transaction.Verify(x => x.Commit());
+            _transaction.Verify(x => x.Commit(), Times.Once);
         }
 
         [Fact]

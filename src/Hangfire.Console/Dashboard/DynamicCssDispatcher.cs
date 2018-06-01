@@ -14,10 +14,7 @@ namespace Hangfire.Console.Dashboard
 
         public DynamicCssDispatcher(ConsoleOptions options)
         {
-            if (options == null)
-                throw new ArgumentNullException(nameof(options));
-
-            _options = options;
+            _options = options ?? throw new ArgumentNullException(nameof(options));
         }
         
         public Task Dispatch(DashboardContext context)

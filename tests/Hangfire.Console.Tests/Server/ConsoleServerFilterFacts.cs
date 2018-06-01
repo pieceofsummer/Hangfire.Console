@@ -95,6 +95,9 @@ namespace Hangfire.Console.Tests.Server
 
             _connection.Verify(x => x.GetHashTtl(It.IsAny<string>()));
             
+            _transaction.Verify(x => x.ExpireSet(It.IsAny<string>(), It.IsAny<TimeSpan>()));
+            _transaction.Verify(x => x.ExpireHash(It.IsAny<string>(), It.IsAny<TimeSpan>()));
+            
             _transaction.Verify(x => x.Commit());
         }
 
@@ -162,8 +165,11 @@ namespace Hangfire.Console.Tests.Server
             _transaction.Verify(x => x.Commit());
         }
 
-        public static void JobMethod()
+        public static void JobMethod(PerformContext context)
         {
+            // reset transaction method calls after OnPerforming is completed
+            var @this = (ConsoleServerFilterFacts) context.Items["this"];
+            @this._transaction.ResetCalls();
         }
 
         private IJobFilterProvider CreateJobFilterProvider(bool followJobRetention = false)
@@ -176,9 +182,11 @@ namespace Hangfire.Console.Tests.Server
 
         private PerformContext CreatePerformContext()
         {
-            return new PerformContext(_connection.Object, 
-                new BackgroundJob("1", Job.FromExpression(() => JobMethod()), DateTime.UtcNow), 
+            var context = new PerformContext(_connection.Object, 
+                new BackgroundJob("1", Job.FromExpression(() => JobMethod(null)), DateTime.UtcNow), 
                 _cancellationToken.Object);
+            context.Items["this"] = this;
+            return context;
         }
 
         private StateData CreateState(string stateName)

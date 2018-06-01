@@ -9,7 +9,7 @@ namespace Hangfire.Console.Serialization
     {
         private static readonly DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         
-        private string _cachedString = null;
+        private string _cachedString;
 
         /// <summary>
         /// Job identifier
@@ -68,7 +68,7 @@ namespace Hangfire.Console.Serialization
             // Timestamp is serialized in reverse order for better randomness!
 
             long timestamp = 0;
-            for (int i = 10; i >= 0; i--)
+            for (var i = 10; i >= 0; i--)
             {
                 var c = value[i] | 0x20;
 
@@ -76,16 +76,13 @@ namespace Hangfire.Console.Serialization
                 if (x == -1)
                     throw new ArgumentException("Invalid value", nameof(value));
 
-                timestamp = (timestamp << 4) | (long)x;
+                timestamp = (timestamp << 4) + x;
             }
 
             return new ConsoleId(value.Substring(11), timestamp) { _cachedString = value };
         }
 
-        /// <summary>
-        /// Determines if this instance is equal to <paramref name="other"/> instance.
-        /// </summary>
-        /// <param name="other">Other instance</param>
+        /// <inheritdoc />
         public bool Equals(ConsoleId other)
         {
             if (ReferenceEquals(other, null)) return false;
@@ -103,7 +100,7 @@ namespace Hangfire.Console.Serialization
                 var buffer = new char[11 + JobId.Length];
 
                 var timestamp = Timestamp;
-                for (int i = 0; i < 11; i++, timestamp >>= 4)
+                for (var i = 0; i < 11; i++, timestamp >>= 4)
                 {
                     var c = timestamp & 0x0F;
                     buffer[i] = (c < 10) ? (char)(c + '0') : (char)(c - 10 + 'a');
@@ -118,15 +115,9 @@ namespace Hangfire.Console.Serialization
         }
         
         /// <inheritdoc />
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as ConsoleId);
-        }
+        public override bool Equals(object obj) => Equals(obj as ConsoleId);
 
         /// <inheritdoc />
-        public override int GetHashCode()
-        {
-            return (JobId.GetHashCode() * 17) ^ Timestamp.GetHashCode();
-        }
+        public override int GetHashCode() => (JobId.GetHashCode() * 17) ^ Timestamp.GetHashCode();
     }
 }

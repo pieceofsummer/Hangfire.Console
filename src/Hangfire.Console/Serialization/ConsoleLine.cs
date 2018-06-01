@@ -22,18 +22,11 @@ namespace Hangfire.Console.Serialization
         [JsonProperty("s", Required = Required.Always)]
         public string Message { get; set; }
 
-        [JsonIgnore]
-        private string _textColor;
-
         /// <summary>
         /// Text color for this message
         /// </summary>
         [JsonProperty("c", DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public string TextColor
-        {
-            get { return _textColor; }
-            set { _textColor = string.IsNullOrEmpty(value) ? null : value; }
-        }
+        public string TextColor { get; set; }
 
         /// <summary>
         /// Value update for a progress bar

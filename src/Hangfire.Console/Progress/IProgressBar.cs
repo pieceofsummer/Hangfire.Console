@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace Hangfire.Console.Progress
+﻿namespace Hangfire.Console.Progress
 {
     /// <summary>
     /// Progress bar line inside console.

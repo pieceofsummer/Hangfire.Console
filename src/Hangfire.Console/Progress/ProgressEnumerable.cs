@@ -15,15 +15,11 @@ namespace Hangfire.Console.Progress
 
         public ProgressEnumerable(IEnumerable enumerable, IProgressBar progressBar, int count)
         {
-            if (enumerable == null)
-                throw new ArgumentNullException(nameof(enumerable));
-            if (progressBar == null)
-                throw new ArgumentNullException(nameof(progressBar));
             if (count < 0)
                 throw new ArgumentOutOfRangeException(nameof(count));
 
-            _enumerable = enumerable;
-            _progressBar = progressBar;
+            _enumerable = enumerable ?? throw new ArgumentNullException(nameof(enumerable));
+            _progressBar = progressBar ?? throw new ArgumentNullException(nameof(progressBar));
             _count = count;
         }
 
@@ -98,15 +94,11 @@ namespace Hangfire.Console.Progress
 
         public ProgressEnumerable(IEnumerable<T> enumerable, IProgressBar progressBar, int count)
         {
-            if (enumerable == null)
-                throw new ArgumentNullException(nameof(enumerable));
-            if (progressBar == null)
-                throw new ArgumentNullException(nameof(progressBar));
             if (count < 0)
                 throw new ArgumentOutOfRangeException(nameof(count));
 
-            _enumerable = enumerable;
-            _progressBar = progressBar;
+            _enumerable = enumerable ?? throw new ArgumentNullException(nameof(enumerable));
+            _progressBar = progressBar ?? throw new ArgumentNullException(nameof(progressBar));
             _count = count;
         }
 

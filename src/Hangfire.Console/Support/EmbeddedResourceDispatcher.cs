@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Threading.Tasks;
 
+// ReSharper disable once CheckNamespace
 namespace Hangfire.Dashboard.Extensions
 {
     /// <summary>
@@ -15,12 +16,10 @@ namespace Hangfire.Dashboard.Extensions
         
         public EmbeddedResourceDispatcher(Assembly assembly, string resourceName, string contentType = null)
         {
-            if (assembly == null)
-                throw new ArgumentNullException(nameof(assembly));
             if (string.IsNullOrEmpty(resourceName))
                 throw new ArgumentNullException(nameof(resourceName));
 
-            _assembly = assembly;
+            _assembly = assembly ?? throw new ArgumentNullException(nameof(assembly));
             _resourceName = resourceName;
             _contentType = contentType;
         }

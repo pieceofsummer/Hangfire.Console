@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
+// ReSharper disable once CheckNamespace
 namespace Hangfire.Dashboard.Extensions
 {
     /// <summary>

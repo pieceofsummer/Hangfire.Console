@@ -14,14 +14,12 @@ namespace Hangfire.Console.Dashboard
     /// </summary>
     internal class ProcessingStateRenderer
     {
+        // ReSharper disable once NotAccessedField.Local
         private readonly ConsoleOptions _options;
 
         public ProcessingStateRenderer(ConsoleOptions options)
         {
-            if (options == null)
-                throw new ArgumentNullException(nameof(options));
-
-            _options = options;
+            _options = options ?? throw new ArgumentNullException(nameof(options));
         }
 
         public NonEscapedString Render(HtmlHelper helper, IDictionary<string, string> stateData)

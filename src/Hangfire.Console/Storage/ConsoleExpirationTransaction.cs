@@ -10,10 +10,7 @@ namespace Hangfire.Console.Storage
 
         public ConsoleExpirationTransaction(JobStorageTransaction transaction)
         {
-            if (transaction == null)
-                throw new ArgumentNullException(nameof(transaction));
-
-            _transaction = transaction;
+            _transaction = transaction ?? throw new ArgumentNullException(nameof(transaction));
         }
 
         public void Dispose()

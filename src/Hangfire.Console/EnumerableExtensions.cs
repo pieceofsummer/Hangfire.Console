@@ -20,13 +20,13 @@ namespace Hangfire.Console
         /// <param name="count">Item count</param>
         public static IEnumerable<T> WithProgress<T>(this IEnumerable<T> enumerable, IProgressBar progressBar, int count = -1)
         {
-            if (enumerable is ICollection<T>)
+            if (enumerable is ICollection<T> collection)
             {
-                count = ((ICollection<T>)enumerable).Count;
+                count = collection.Count;
             }
-            else if (enumerable is IReadOnlyCollection<T>)
+            else if (enumerable is IReadOnlyCollection<T> readOnlyCollection)
             {
-                count = ((IReadOnlyCollection<T>)enumerable).Count;
+                count = readOnlyCollection.Count;
             }
             else if (count < 0)
             {
@@ -44,9 +44,9 @@ namespace Hangfire.Console
         /// <param name="count">Item count</param>
         public static IEnumerable WithProgress(this IEnumerable enumerable, IProgressBar progressBar, int count = -1)
         {
-            if (enumerable is ICollection)
+            if (enumerable is ICollection collection)
             {
-                count = ((ICollection)enumerable).Count;
+                count = collection.Count;
             }
             else if (count < 0)
             {

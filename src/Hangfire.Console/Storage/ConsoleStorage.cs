@@ -17,7 +17,10 @@ namespace Hangfire.Console.Storage
             if (connection == null)
                 throw new ArgumentNullException(nameof(connection));
 
-            _connection = (JobStorageConnection)connection;
+            if (!(connection is JobStorageConnection jobStorageConnection))
+                throw new NotSupportedException("Storage connections must implement JobStorageConnection");
+            
+            _connection = jobStorageConnection;
         }
 
         public void Dispose()
@@ -33,7 +36,15 @@ namespace Hangfire.Console.Storage
             // We add an extra "jobId" record into Hash for console,
             // to correctly track TTL even if console contains no lines
 
-            _connection.SetRangeInHash(consoleId.GetHashKey(), new[] { new KeyValuePair<string, string>("jobId", consoleId.JobId) });
+            using (var transaction = _connection.CreateWriteTransaction())
+            {
+                if (!(transaction is JobStorageTransaction))
+                    throw new NotSupportedException("Storage tranactions must implement JobStorageTransaction");
+                
+                transaction.SetRangeInHash(consoleId.GetHashKey(), new[] { new KeyValuePair<string, string>("jobId", consoleId.JobId) });
+                
+                transaction.Commit();
+            }
         }
 
         public void AddLine(ConsoleId consoleId, ConsoleLine line)

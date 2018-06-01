@@ -16,10 +16,7 @@ namespace Hangfire.Console.Dashboard
 
         public ConsoleDispatcher(ConsoleOptions options)
         {
-            if (options == null)
-                throw new ArgumentNullException(nameof(options));
-
-            _options = options;
+            _options = options ?? throw new ArgumentNullException(nameof(options));
         }
 
         public Task Dispatch(DashboardContext context)
@@ -32,8 +29,7 @@ namespace Hangfire.Console.Dashboard
             var startArg = context.Request.GetQuery("start");
 
             // try to parse offset at which we should start returning requests
-            int start;
-            if (string.IsNullOrEmpty(startArg) || !int.TryParse(startArg, out start))
+            if (string.IsNullOrEmpty(startArg) || !int.TryParse(startArg, out var start))
             {
                 // if not provided or invalid, fetch records from the very start
                 start = 0;

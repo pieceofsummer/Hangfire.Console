@@ -3,7 +3,6 @@ using Hangfire.Console.Serialization;
 using Hangfire.Console.Storage;
 using Hangfire.Dashboard;
 using Hangfire.States;
-using Hangfire.Storage;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -52,7 +51,7 @@ namespace Hangfire.Console.Dashboard
                     buffer.Append(Helper.HtmlEncode(text.Substring(start, m.Index - start)));
                 }
 
-                string schema = "";
+                var schema = "";
                 if (!m.Groups["schema"].Success)
                 {
                     // force schema for links without one (like www.google.com)
@@ -192,8 +191,7 @@ namespace Hangfire.Console.Dashboard
 
                         if (progressBars != null)
                         {
-                            ConsoleLine prev;
-                            if (progressBars.TryGetValue(entry.Message, out prev))
+                            if (progressBars.TryGetValue(entry.Message, out var prev))
                             {
                                 prev.ProgressValue = entry.ProgressValue;
                                 prev.TextColor = entry.TextColor;

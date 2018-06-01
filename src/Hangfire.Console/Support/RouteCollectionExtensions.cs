@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
+// ReSharper disable once CheckNamespace
 namespace Hangfire.Dashboard.Extensions
 {
     /// <summary>
@@ -10,6 +11,7 @@ namespace Hangfire.Dashboard.Extensions
     /// </summary>
     internal static class RouteCollectionExtensions
     {
+        // ReSharper disable once InconsistentNaming
         private static readonly FieldInfo _dispatchers = typeof(RouteCollection).GetTypeInfo().GetDeclaredField(nameof(_dispatchers));
 
         /// <summary>
@@ -57,17 +59,16 @@ namespace Hangfire.Dashboard.Extensions
 
             var list = routes.GetDispatchers();
 
-            for (int i = 0; i < list.Count; i++)
+            for (var i = 0; i < list.Count; i++)
             {
                 var pair = list[i];
                 if (pair.Item1 == pathTemplate)
                 {
-                    var composite = pair.Item2 as CompositeDispatcher;
-                    if (composite == null)
+                    if (!(pair.Item2 is CompositeDispatcher composite))
                     {
                         // replace original dispatcher with a composite one
                         composite = new CompositeDispatcher(pair.Item2);
-                        list[i] = new Tuple<string, IDashboardDispatcher>(pathTemplate, composite);
+                        list[i] = new Tuple<string, IDashboardDispatcher>(pair.Item1, composite);
                     }
 
                     composite.AddDispatcher(dispatcher);
@@ -96,12 +97,12 @@ namespace Hangfire.Dashboard.Extensions
 
             var list = routes.GetDispatchers();
 
-            for (int i = 0; i < list.Count; i++)
+            for (var i = 0; i < list.Count; i++)
             {
                 var pair = list[i];
                 if (pair.Item1 == pathTemplate)
                 {
-                    list[i] = new Tuple<string, IDashboardDispatcher>(pathTemplate, dispatcher);
+                    list[i] = new Tuple<string, IDashboardDispatcher>(pair.Item1, dispatcher);
                     return;
                 }
             }
@@ -123,7 +124,7 @@ namespace Hangfire.Dashboard.Extensions
 
             var list = routes.GetDispatchers();
 
-            for (int i = 0; i < list.Count; i++)
+            for (var i = 0; i < list.Count; i++)
             {
                 var pair = list[i];
                 if (pair.Item1 == pathTemplate)

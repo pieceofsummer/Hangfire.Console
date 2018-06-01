@@ -14,13 +14,13 @@ namespace Hangfire.Console.Tests
     {
         private readonly Mock<IJobCancellationToken> _cancellationToken;
         private readonly Mock<JobStorageConnection> _connection;
-        private readonly Mock<IWriteOnlyTransaction> _transaction;
+        private readonly Mock<JobStorageTransaction> _transaction;
 
         public ConsoleExtensionsFacts()
         {
             _cancellationToken = new Mock<IJobCancellationToken>();
             _connection = new Mock<JobStorageConnection>();
-            _transaction = new Mock<IWriteOnlyTransaction>();
+            _transaction = new Mock<JobStorageTransaction>();
 
             _connection.Setup(x => x.CreateWriteTransaction())
                 .Returns(_transaction.Object);

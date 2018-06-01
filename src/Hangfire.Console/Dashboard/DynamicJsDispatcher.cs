@@ -14,20 +14,17 @@ namespace Hangfire.Console.Dashboard
 
         public DynamicJsDispatcher(ConsoleOptions options)
         {
-            if (options == null)
-                throw new ArgumentNullException(nameof(options));
-
-            _options = options;
+            _options = options ?? throw new ArgumentNullException(nameof(options));
         }
         
         public Task Dispatch(DashboardContext context)
         {
             var builder = new StringBuilder();
 
-            builder.Append(@"(function (hangFire) {")
-                   .Append("hangFire.config = hangFire.config || {};")
-                   .AppendFormat("hangFire.config.consolePollInterval = {0};", _options.PollInterval)
-                   .AppendFormat("hangFire.config.consolePollUrl = '{0}/console/';", context.Request.PathBase)
+            builder.Append(@"(function (hangfire) {")
+                   .Append("hangfire.config = hangfire.config || {};")
+                   .AppendFormat("hangfire.config.consolePollInterval = {0};", _options.PollInterval)
+                   .AppendFormat("hangfire.config.consolePollUrl = '{0}/console/';", context.Request.PathBase)
                    .Append("})(window.Hangfire = window.Hangfire || {});")
                    .AppendLine();
 

@@ -14,10 +14,7 @@ namespace Hangfire.Console.States
 
         public ConsoleApplyStateFilter(ConsoleOptions options)
         {
-            if (options == null)
-                throw new ArgumentNullException(nameof(options));
-
-            _options = options;
+            _options = options ?? throw new ArgumentNullException(nameof(options));
         }
         
         public void OnStateApplied(ApplyStateContext context, IWriteOnlyTransaction transaction)

@@ -34,13 +34,8 @@ namespace Hangfire.Console.Server
 
         public ConsoleContext(ConsoleId consoleId, IConsoleStorage storage)
         {
-            if (consoleId == null)
-                throw new ArgumentNullException(nameof(consoleId));
-            if (storage == null)
-                throw new ArgumentNullException(nameof(storage));
-
-            _consoleId = consoleId;
-            _storage = storage;
+            _consoleId = consoleId ?? throw new ArgumentNullException(nameof(consoleId));
+            _storage = storage ?? throw new ArgumentNullException(nameof(storage));
 
             _lastTimeOffset = 0;
             _nextProgressBarId = 0;
@@ -87,7 +82,7 @@ namespace Hangfire.Console.Server
 
             return progressBar;
         }
-
+        
         public void Expire(TimeSpan expireIn)
         {
             _storage.Expire(_consoleId, expireIn);
@@ -95,7 +90,7 @@ namespace Hangfire.Console.Server
 
         public void FixExpiration()
         {
-            TimeSpan ttl = _storage.GetConsoleTtl(_consoleId);
+            var ttl = _storage.GetConsoleTtl(_consoleId);
             if (ttl <= TimeSpan.Zero)
             {
                 // ConsoleApplyStateFilter not called yet, or current job state is not final.

@@ -16,10 +16,7 @@ namespace Hangfire.Console.Server
 
         public ConsoleServerFilter(ConsoleOptions options)
         {
-            if (options == null)
-                throw new ArgumentNullException(nameof(options));
-
-            _options = options;
+            _options = options ?? throw new ArgumentNullException(nameof(options));
         }
 
         public void OnPerforming(PerformingContext filterContext)

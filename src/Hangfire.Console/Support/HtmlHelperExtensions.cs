@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
+// ReSharper disable once CheckNamespace
 namespace Hangfire.Dashboard.Extensions
 {
     /// <summary>
@@ -8,6 +9,7 @@ namespace Hangfire.Dashboard.Extensions
     /// </summary>
     internal static class HtmlHelperExtensions
     {
+        // ReSharper disable once InconsistentNaming
         private static readonly FieldInfo _page = typeof(HtmlHelper).GetTypeInfo().GetDeclaredField(nameof(_page));
 
         /// <summary>
