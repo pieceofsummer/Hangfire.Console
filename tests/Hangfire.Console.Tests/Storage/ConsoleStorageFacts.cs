@@ -6,6 +6,7 @@ using Hangfire.Storage;
 using Moq;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Xunit;
 using KVP = System.Collections.Generic.KeyValuePair<string, string>;
@@ -147,6 +148,26 @@ namespace Hangfire.Console.Tests.Storage
             _transaction.Verify(x => x.Commit(), Times.Once);
         }
 
+        
+        [Fact]
+        public void AddLine_ProgressBarIsAddedToSet_AndProgressIsUpdated()
+        {
+            var storage = new ConsoleStorage(_connection.Object);
+            var line = new ConsoleLine()
+            {
+                Message = "1",
+                ProgressValue = 10
+            };
+
+            storage.AddLine(_consoleId, line);
+
+            Assert.False(line.IsReference);
+            _connection.Verify(x => x.CreateWriteTransaction(), Times.Once);
+            _transaction.Verify(x => x.AddToSet(_consoleId.GetSetKey(), It.IsAny<string>(), It.IsAny<double>()));
+            _transaction.Verify(x => x.SetRangeInHash(_consoleId.GetHashKey(), It2.AnyIs<KVP>(p => p.Key == "progress")));
+            _transaction.Verify(x => x.Commit(), Times.Once);
+        }
+        
         [Fact]
         public void Expire_ThrowsException_IfConsoleIdIsNull()
         {
@@ -370,6 +391,52 @@ namespace Hangfire.Console.Tests.Storage
             var result = storage.GetState(_consoleId);
 
             Assert.Same(state, result);
+        }
+        
+        [Fact]
+        public void GetProgress_ThrowsException_IfConsoleIdIsNull()
+        {
+            var storage = new ConsoleStorage(_connection.Object);
+
+            Assert.Throws<ArgumentNullException>("consoleId", () => storage.GetProgress(null));
+        }
+
+        [Fact]
+        public void GetProgress_ReturnsNull_IfProgressNotPresent()
+        {
+            var storage = new ConsoleStorage(_connection.Object);
+
+            var result = storage.GetProgress(_consoleId);
+
+            Assert.Null(result);
+        }
+        
+        [Fact]
+        public void GetProgress_ReturnsNull_IfValueIsInvalid()
+        {
+            _connection.Setup(x => x.GetValueFromHash(It.IsAny<string>(), It.IsIn("progress")))
+                .Returns("null");
+
+            var storage = new ConsoleStorage(_connection.Object);
+
+            var result = storage.GetProgress(_consoleId);
+
+            Assert.Null(result);
+        }
+        
+        [Fact]
+        public void GetProgress_ReturnsProgressValue()
+        {
+            const double progress = 12.5;
+
+            _connection.Setup(x => x.GetValueFromHash(It.IsAny<string>(), It.IsIn("progress")))
+                .Returns(progress.ToString(CultureInfo.InvariantCulture));
+
+            var storage = new ConsoleStorage(_connection.Object);
+
+            var result = storage.GetProgress(_consoleId);
+
+            Assert.Equal(progress, result);
         }
     }
 }

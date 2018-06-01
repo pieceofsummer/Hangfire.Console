@@ -41,7 +41,8 @@ namespace Hangfire.Console
             // replace renderer for Processing state
             JobHistoryRenderer.Register(ProcessingState.StateName, new ProcessingStateRenderer(options).Render);
 
-            // register dispatcher to serve console updates
+            // register dispatchers to serve console data
+            DashboardRoutes.Routes.Add("/console/progress", new JobProgressDispatcher(options));
             DashboardRoutes.Routes.Add("/console/([0-9a-f]{11}.+)", new ConsoleDispatcher(options));
             
             // register additional dispatchers for CSS and JS

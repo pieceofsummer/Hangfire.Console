@@ -187,3 +187,82 @@ body {
 @keyframes loadingDots {
     to { width: 27px; }
 }
+
+.progress-circle {
+    position: absolute;
+    margin-left: -20px;
+    margin-top: -2px;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    background-color: #eee;
+    border-radius: 50%;
+    float: left;
+    pointer-events: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.progress-circle:after {
+    border: none;
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    text-align: center;
+    display: block;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    background-color: white;
+    content: ' ';
+}
+
+.progress-circle span {
+    display: block;
+    position: absolute;
+    width: 24px;
+    color: #888;
+    z-index: 2;
+    text-align: center;
+    line-height: 24px;
+    font-size: 9px;
+    font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+    letter-spacing: -0.5px;
+}
+
+.progress-circle .left-half-clipper {
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    position: absolute;
+    clip: rect(0, 24px, 24px, 12px);
+}
+
+.progress-circle.over50 .left-half-clipper {
+    clip: rect(auto, auto, auto, auto);
+}
+
+.progress-circle .first50-bar {
+    display: none;
+}
+
+.progress-circle.over50 .first50-bar {
+    display: block;
+    position: absolute;
+    clip: rect(0, 24px, 24px, 12px);
+    background-color: #337ab7;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+}
+
+.progress-circle .value-bar {
+    position: absolute;
+    clip: rect(0, 12px, 24px, 0);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 3px solid #337ab7;
+    box-sizing: border-box;
+}

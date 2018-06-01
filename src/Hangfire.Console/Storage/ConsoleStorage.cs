@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using Hangfire.Console.Serialization;
 using Hangfire.Storage;
 using Hangfire.Common;
@@ -93,6 +94,13 @@ namespace Hangfire.Console.Storage
 
                 tran.AddToSet(consoleId.GetSetKey(), value, line.TimeOffset);
 
+                if (line.ProgressValue.HasValue && line.Message == "1")
+                {
+                    var progress = line.ProgressValue.Value.ToString(CultureInfo.InvariantCulture);
+                    
+                    tran.SetRangeInHash(consoleId.GetHashKey(), new[] { new KeyValuePair<string, string>("progress", progress) });
+                }
+                
                 tran.Commit();
             }
         }
@@ -189,6 +197,29 @@ namespace Hangfire.Console.Storage
                 throw new ArgumentNullException(nameof(consoleId));
 
             return _connection.GetStateData(consoleId.JobId);
+        }
+
+        public double? GetProgress(ConsoleId consoleId)
+        {
+            if (consoleId == null)
+                throw new ArgumentNullException(nameof(consoleId));
+
+            var progress = _connection.GetValueFromHash(consoleId.GetHashKey(), "progress");
+            if (string.IsNullOrEmpty(progress))
+            {
+                // progress value is not set
+                return null;
+            }
+
+            try
+            {
+                return double.Parse(progress, CultureInfo.InvariantCulture);
+            }
+            catch (Exception)
+            {
+                // corrupted data?
+                return null;
+            }
         }
     }
 }

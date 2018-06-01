@@ -56,5 +56,12 @@ namespace Hangfire.Console.Storage
         /// </summary>
         /// <param name="consoleId">Console identifier</param>
         StateData GetState(ConsoleId consoleId);
+
+        /// <summary>
+        /// Returns overall progress of the console (if available).
+        /// </summary>
+        /// <param name="consoleId">Console identifier</param>
+        /// <returns>Progress value</returns>
+        double? GetProgress(ConsoleId consoleId);
     }
 }
