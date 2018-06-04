@@ -200,7 +200,7 @@
                 this._value = null;
                 
             } else {
-                value = Math.max(Math.round(value), 100); 
+                value = Math.min(Math.round(value), 100); 
 
                 if (!this._pb || this._pb.length === 0) {
                     this._pb = this._create();
@@ -235,32 +235,26 @@
             this._timerCallback = null;
         }
 
-        JobProgressPoller.prototype._update = function(data) {
-            if (typeof data !== "object") return;
-            
-            for (var jobId in Object.getOwnPropertyNames(data)) {
-                var progress = this._jobsProgress[jobId],
-                    value = data[jobId];
-                if (progress)
-                    progress.update(value);
-            }
-        };
-        
-        JobProgressPoller.prototype._nextPoll = function() {
-            if (this._timerCallback) {
-                this._timerId = setTimeout(this._timerCallback, pollInterval);
-            } else {
-                this._timerId = null;
-            }
-        };
-        
         JobProgressPoller.prototype.start = function () {
             if (this._jobIds.length === 0) return;
 
             var self = this;
             this._timerCallback = function() {
-                $.post(pollUrl + 'progress', { 'jobs[]': self._jobIds }, function(data) { self._update(data) })
-                 .always(function () { self._nextPoll() });
+                $.post(pollUrl + 'progress', { 'jobs[]': self._jobIds }, function(data) {
+                    var jobsProgress = self._jobsProgress;
+                    Object.getOwnPropertyNames(data).forEach(function (jobId) {
+                        var progress = jobsProgress[jobId],
+                            value = data[jobId];
+                        if (progress)
+                            progress.update(value);
+                    });
+                }).always(function () {
+                    if (self._timerCallback) {
+                        self._timerId = setTimeout(self._timerCallback, pollInterval);
+                    } else {
+                        self._timerId = null;
+                    }
+                });
             };
             
             this._timerId = setTimeout(this._timerCallback, 50);
