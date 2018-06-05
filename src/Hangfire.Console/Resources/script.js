@@ -173,54 +173,33 @@
     })();
 
     hangfire.JobProgress = (function () {
-        var options = {
-            size: 24,
-            lineWidth: 2,
-            lineColor: '#ddd',
-            progressColor: '#337ab7'
-        };
-        
         function JobProgress(row) {
             if (!row || row.length !== 1)
                 throw new Error("JobProgress expects jQuery object with a single value");
             
             this._row = row;
             this._progress = null;
+            this._bar = null;
             this._value = null;
         }
 
         JobProgress.prototype._create = function() {
-            var size = options.size;
-
-            this._progress = document.createElement('div');
-            this._progress.className = 'progress-circle';
-
-            this._span = document.createElement('span');
-            this._span.style.lineHeight = size + 'px';
-            this._progress.appendChild(this._span);
-
-            this._canvas = document.createElement('canvas');
-
-            if (typeof G_vmlCanvasManager !== 'undefined') {
-                G_vmlCanvasManager.initElement(this._canvas);
-            }
-
-            this._canvas.width = size;
-            this._canvas.height = size;
-            this._progress.appendChild(this._canvas);
-
-            var ctx = this._canvas.getContext('2d');
-            ctx.translate(size / 2, size / 2);
-            ctx.rotate(-Math.PI / 2);
+            var parent = $('td:last-child', this._row);
+            this._progress = $('<div class="progress-circle">\n' +
+                '  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">\n' +
+                '    <circle r="11" cx="12" cy="12" />\n' +
+                '    <circle class="bar" r="11" cx="12" cy="12" stroke-dasharray="69.12" stroke-dashoffset="69.12" />\n' +
+                '  </svg>\n' +
+                '</div>').prependTo(parent);
+            this._bar = $('.bar', this._progress);
         };
         
         JobProgress.prototype._destroy = function() {
             if (this._progress)
-                $(this._progress).remove();
+                this._progress.remove();
             
             this._progress = null;
-            this._canvas = null;
-            this._span = null;
+            this._bar = null;
             this._value = null;
         };
 
@@ -234,32 +213,15 @@
 
             if (!this._progress) {
                 this._create();
-                $('td:last-child', this._row).prepend(this._progress);
             } else if (this._value === value) {
                 return;
             }
 
-            var size = options.size,
-                radius = (size - options.lineWidth) / 2;
-
-            var ctx = this._canvas.getContext('2d');
-            ctx.clearRect(-size / 2, -size / 2, size, size);
-
-            ctx.beginPath();
-            ctx.arc(0, 0, radius, 0, Math.PI * 2, false);
-            ctx.lineWidth = options.lineWidth;
-            ctx.strokeStyle = options.lineColor;
-            ctx.lineCap = 'square';
-            ctx.stroke();
-
-            ctx.beginPath();
-            ctx.arc(0, 0, radius, 0, Math.PI * 2 * value / 100, false);
-            ctx.lineWidth = options.lineWidth;
-            ctx.strokeStyle = options.progressColor;
-            ctx.lineCap = 'round';
-            ctx.stroke();
-
-            this._span.textContent = value;
+            var r = this._bar.attr('r'),
+                c = Math.PI * r * 2;
+            
+            this._bar.css('stroke-dashoffset', ((100 - value) / 100) * c);
+            this._progress.attr('data-value', value);
             this._value = value;
         };
         

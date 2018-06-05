@@ -195,6 +195,9 @@ body {
     position: absolute;
     margin-left: -20px;
     margin-top: -2px;
+    width: 24px;
+    height: 24px;
+    color: #337ab7;
 
     pointer-events: none;
     -moz-user-select: none;
@@ -202,17 +205,27 @@ body {
     user-select: none;
 }
 
-.progress-circle canvas {
-    display: block;
-}
-
-.progress-circle span {
+.progress-circle:before {
+    content: attr(data-value);
     display: block;
     position: absolute;
     width: 100%;
-    color: #337ab7;
     text-align: center;
+    line-height: 24px;
     font-size: 9px;
     font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
     letter-spacing: -0.5px;
+}
+
+.progress-circle circle {
+    transition: stroke-dashoffset .6s ease;
+    stroke: #ddd;
+    fill: transparent;
+    stroke-width: 2px;
+}
+
+.progress-circle .bar {
+    stroke: currentColor;
+    transform-origin: center;
+    transform: rotate(-90deg);
 }
