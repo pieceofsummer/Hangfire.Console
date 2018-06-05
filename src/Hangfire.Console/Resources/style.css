@@ -215,6 +215,7 @@ body {
     font-size: 9px;
     font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
     letter-spacing: -0.5px;
+    margin-left: 0.25px;
 }
 
 .progress-circle circle {
