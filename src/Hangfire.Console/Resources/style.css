@@ -218,6 +218,9 @@ body {
 }
 
 .progress-circle circle {
+    -webkit-transition: stroke-dashoffset .6s ease;
+    -moz-transition: stroke-dashoffset .6s ease;
+    -o-transition: stroke-dashoffset .6s ease;
     transition: stroke-dashoffset .6s ease;
     stroke: #ddd;
     fill: transparent;
