@@ -307,7 +307,7 @@ $(function () {
             $(this).removeClass("collapsed");
         });
         
-    } else if (path.endsWith("/jobs/processing")) {
+    } else if (/\/jobs\/processing$/.test(path)) {
         // execute scripts for /jobs/processing
         
         Hangfire.page._jobProgressPoller = new Hangfire.JobProgressPoller();
