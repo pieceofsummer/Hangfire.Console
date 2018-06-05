@@ -172,52 +172,97 @@
         return Console;
     })();
 
-    hangfire.JobProgress = (function () { 
+    hangfire.JobProgress = (function () {
+        var options = {
+            size: 24,
+            lineWidth: 2,
+            lineColor: '#ddd',
+            progressColor: '#337ab7'
+        };
+        
         function JobProgress(row) {
             if (!row || row.length !== 1)
                 throw new Error("JobProgress expects jQuery object with a single value");
             
             this._row = row;
-            this._pb = $('.progress-circle', row);
-            this._pv = $('.value-bar', this._pb);
-            this._pt = $('span', this._pb);
+            this._progress = null;
             this._value = null;
         }
-        
+
         JobProgress.prototype._create = function() {
-            var cell = $('td:last-child', this._row);
-            return $('<div class="progress-circle"><span></span><div class="left-half-clipper">' +
-                '<div class="first50-bar"></div><div class="value-bar"></div></div></div>').prependTo(cell);
+            var size = options.size;
+
+            this._progress = document.createElement('div');
+            this._progress.className = 'progress-circle';
+
+            this._span = document.createElement('span');
+            this._span.style.lineHeight = size + 'px';
+            this._progress.appendChild(this._span);
+
+            this._canvas = document.createElement('canvas');
+
+            if (typeof G_vmlCanvasManager !== 'undefined') {
+                G_vmlCanvasManager.initElement(this._canvas);
+            }
+
+            this._canvas.width = size;
+            this._canvas.height = size;
+            this._progress.appendChild(this._canvas);
+
+            var ctx = this._canvas.getContext('2d');
+            ctx.translate(size / 2, size / 2);
+            ctx.rotate(-Math.PI / 2);
         };
         
+        JobProgress.prototype._destroy = function() {
+            if (this._progress)
+                $(this._progress).remove();
+            
+            this._progress = null;
+            this._canvas = null;
+            this._span = null;
+            this._value = null;
+        };
+
         JobProgress.prototype.update = function(value) {
             if (typeof value !== 'number' || value < 0) {
-                // invalid state
-                this._pb.remove();
-                this._pb = null;
-                this._pv = null;
-                this._pt = null;
-                this._value = null;
-                
-            } else {
-                value = Math.min(Math.round(value), 100); 
-
-                if (!this._pb || this._pb.length === 0) {
-                    this._pb = this._create();
-                    this._pv = $('.value-bar', this._pb);
-                    this._pt = $('span', this._pb);
-                } else if (this._value === value) {
-                    // previous value has not changed
-                    return;
-                }
-
-                this._pb.toggleClass('over50', value >= 50);
-                this._pv.css('transform', 'rotate(' + Math.round(value * 3.6, 1) + 'deg)');
-                this._pt.text(value);
-                this._value = value;
+                this._destroy();
+                return;
             }
-        };
+            
+            value = Math.min(Math.round(value), 100);
 
+            if (!this._progress) {
+                this._create();
+                $('td:last-child', this._row).prepend(this._progress);
+            } else if (this._value === value) {
+                return;
+            }
+
+            var size = options.size,
+                radius = (size - options.lineWidth) / 2;
+
+            var ctx = this._canvas.getContext('2d');
+            ctx.clearRect(-size / 2, -size / 2, size, size);
+
+            ctx.beginPath();
+            ctx.arc(0, 0, radius, 0, Math.PI * 2, false);
+            ctx.lineWidth = options.lineWidth;
+            ctx.strokeStyle = options.lineColor;
+            ctx.lineCap = 'square';
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(0, 0, radius, 0, Math.PI * 2 * value / 100, false);
+            ctx.lineWidth = options.lineWidth;
+            ctx.strokeStyle = options.progressColor;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+
+            this._span.textContent = value;
+            this._value = value;
+        };
+        
         return JobProgress;
     })();
 
@@ -225,8 +270,10 @@
         function JobProgressPoller() {
             var jobsProgress = {};
             $(".js-jobs-list-row").each(function () {
-                var $this = $(this), jobId = $("input[name='jobs[]']", $this).val();
-                if (jobId) jobsProgress[jobId] = new Hangfire.JobProgress($this);
+                var $this = $(this),
+                    jobId = $("input[name='jobs[]']", $this).val();
+                if (jobId)
+                    jobsProgress[jobId] = new Hangfire.JobProgress($this);
             });
 
             this._jobsProgress = jobsProgress;
