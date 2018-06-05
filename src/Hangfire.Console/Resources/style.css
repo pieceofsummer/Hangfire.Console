@@ -218,6 +218,11 @@ body {
     margin-left: 0.25px;
 }
 
+.progress-circle svg {
+    transform-origin: center;
+    transform: rotate(-90deg);
+}
+
 .progress-circle circle {
     -webkit-transition: stroke-dashoffset .6s ease;
     -moz-transition: stroke-dashoffset .6s ease;
@@ -230,6 +235,4 @@ body {
 
 .progress-circle .bar {
     stroke: currentColor;
-    transform-origin: center;
-    transform: rotate(-90deg);
 }
