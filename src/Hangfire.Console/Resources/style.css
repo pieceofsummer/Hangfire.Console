@@ -192,7 +192,8 @@ body {
 }
 
 .progress-circle {
-    position: absolute;
+    position: relative;
+    float: left;
     margin-left: -20px;
     margin-top: -2px;
     width: 24px;
@@ -209,6 +210,7 @@ body {
     content: attr(data-value);
     display: block;
     position: absolute;
+    z-index: 1;
     width: 100%;
     text-align: center;
     line-height: 24px;
