@@ -17,7 +17,7 @@ namespace Hangfire.Console.Dashboard
     /// </summary>
     internal class JobProgressDispatcher : IDashboardDispatcher
     {
-        private static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings()
+        internal static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings()
         {
             ContractResolver = new DefaultContractResolver()
         };

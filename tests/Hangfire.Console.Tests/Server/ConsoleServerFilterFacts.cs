@@ -91,7 +91,7 @@ namespace Hangfire.Console.Tests.Server
             performer.Perform(context);
 
             var consoleContext = ConsoleContext.FromPerformContext(context);
-            Assert.NotNull(consoleContext);
+            Assert.Null(consoleContext);
 
             _connection.Verify(x => x.GetHashTtl(It.IsAny<string>()));
             
@@ -115,7 +115,7 @@ namespace Hangfire.Console.Tests.Server
             performer.Perform(context);
 
             var consoleContext = ConsoleContext.FromPerformContext(context);
-            Assert.NotNull(consoleContext);
+            Assert.Null(consoleContext);
 
             _connection.Verify(x => x.GetHashTtl(It.IsAny<string>()));
 
@@ -136,7 +136,7 @@ namespace Hangfire.Console.Tests.Server
             performer.Perform(context);
 
             var consoleContext = ConsoleContext.FromPerformContext(context);
-            Assert.NotNull(consoleContext);
+            Assert.Null(consoleContext);
 
             _connection.Verify(x => x.GetHashTtl(It.IsAny<string>()));
 
@@ -155,7 +155,7 @@ namespace Hangfire.Console.Tests.Server
             performer.Perform(context);
             
             var consoleContext = ConsoleContext.FromPerformContext(context);
-            Assert.NotNull(consoleContext);
+            Assert.Null(consoleContext);
 
             _connection.Verify(x => x.GetHashTtl(It.IsAny<string>()), Times.Never);
 
