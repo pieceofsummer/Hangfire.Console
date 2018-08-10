@@ -19,10 +19,7 @@ namespace Hangfire.Console.Dashboard
     {
         private static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings()
         {
-            ContractResolver = new CamelCasePropertyNamesContractResolver()
-            {
-                NamingStrategy = new CamelCaseNamingStrategy(false, true)
-            }
+            ContractResolver = new DefaultContractResolver()
         };
         
         // ReSharper disable once NotAccessedField.Local
