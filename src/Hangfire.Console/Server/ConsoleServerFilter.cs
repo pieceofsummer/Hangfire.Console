@@ -60,6 +60,9 @@ namespace Hangfire.Console.Server
             {
                 ConsoleContext.FromPerformContext(filterContext)?.Expire(_options.ExpireIn);
             }
+            
+            // remove console context to prevent further writes from filters
+            filterContext.Items.Remove("ConsoleContext");
         }
     }
 }
