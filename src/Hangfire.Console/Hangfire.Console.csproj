@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Description>Job console for Hangfire</Description>
     <AssemblyTitle>Hangfire.Console</AssemblyTitle>
-    <VersionPrefix>1.4.0</VersionPrefix>
+    <VersionPrefix>1.4.1</VersionPrefix>
     <Authors>Alexey Skalozub</Authors>
     <TargetFrameworks>netstandard1.3;net45</TargetFrameworks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -11,6 +11,11 @@
     <PackageId>Hangfire.Console</PackageId>
     <PackageTags>hangfire;console;logging</PackageTags>
     <PackageReleaseNotes>History:
+      v1.4.1:
+      • Fix job progress style
+      • Use explicit json serializer settings
+      • Remove ConsoleContext from Items in OnPerformed
+      
       v1.4.0:
       • Show job progress at Processing Jobs page
       
