@@ -2,6 +2,7 @@
 using Hangfire.Console.Server;
 using Hangfire.Server;
 using System;
+using JetBrains.Annotations;
 
 namespace Hangfire.Console
 {
@@ -103,6 +104,7 @@ namespace Hangfire.Console
         /// <param name="context">Context</param>
         /// <param name="format">Format string</param>
         /// <param name="arg0">Argument</param>
+        [StringFormatMethod("format")]
         public static void WriteLine(this PerformContext context, string format, object arg0)
             => WriteLine(context, string.Format(format, arg0));
 
@@ -113,6 +115,7 @@ namespace Hangfire.Console
         /// <param name="format">Format string</param>
         /// <param name="arg0">Argument</param>
         /// <param name="arg1">Argument</param>
+        [StringFormatMethod("format")]
         public static void WriteLine(this PerformContext context, string format, object arg0, object arg1)
             => WriteLine(context, string.Format(format, arg0, arg1));
 
@@ -124,6 +127,7 @@ namespace Hangfire.Console
         /// <param name="arg0">Argument</param>
         /// <param name="arg1">Argument</param>
         /// <param name="arg2">Argument</param>
+        [StringFormatMethod("format")]
         public static void WriteLine(this PerformContext context, string format, object arg0, object arg1, object arg2)
             => WriteLine(context, string.Format(format, arg0, arg1, arg2));
 
@@ -133,6 +137,7 @@ namespace Hangfire.Console
         /// <param name="context">Context</param>
         /// <param name="format">Format string</param>
         /// <param name="args">Arguments</param>
+        [StringFormatMethod("format")]
         public static void WriteLine(this PerformContext context, string format, params object[] args)
             => WriteLine(context, string.Format(format, args));
         
@@ -152,6 +157,7 @@ namespace Hangfire.Console
         /// <param name="color">Text color</param>
         /// <param name="format">Format string</param>
         /// <param name="arg0">Argument</param>
+        [StringFormatMethod("format")]
         public static void WriteLine(this PerformContext context, ConsoleTextColor color, string format, object arg0)
             => WriteLine(context, color, string.Format(format, arg0));
 
@@ -163,6 +169,7 @@ namespace Hangfire.Console
         /// <param name="format">Format string</param>
         /// <param name="arg0">Argument</param>
         /// <param name="arg1">Argument</param>
+        [StringFormatMethod("format")]
         public static void WriteLine(this PerformContext context, ConsoleTextColor color, string format, object arg0, object arg1)
             => WriteLine(context, color, string.Format(format, arg0, arg1));
 
@@ -175,6 +182,7 @@ namespace Hangfire.Console
         /// <param name="arg0">Argument</param>
         /// <param name="arg1">Argument</param>
         /// <param name="arg2">Argument</param>
+        [StringFormatMethod("format")]
         public static void WriteLine(this PerformContext context, ConsoleTextColor color, string format, object arg0, object arg1, object arg2)
             => WriteLine(context, color, string.Format(format, arg0, arg1, arg2));
 
@@ -185,6 +193,7 @@ namespace Hangfire.Console
         /// <param name="color">Text color</param>
         /// <param name="format">Format string</param>
         /// <param name="args">Arguments</param>
+        [StringFormatMethod("format")]
         public static void WriteLine(this PerformContext context, ConsoleTextColor color, string format, params object[] args)
             => WriteLine(context, color, string.Format(format, args));
     }
