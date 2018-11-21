@@ -1,0 +1,72 @@
+<assembly name="Hangfire.Console">
+    <member name="M:Hangfire.Console.ConsoleExtensions.WriteLine(Hangfire.Server.PerformContext,System.String,System.Object)">
+        <attribute ctor="M:JetBrains.Annotations.StringFormatMethodAttribute.#ctor(System.String)">
+            <argument>format</argument>
+        </attribute>
+        <parameter name="format">
+            <attribute ctor="M:JetBrains.Annotations.NotNullAttribute.#ctor"/>
+        </parameter>
+    </member>
+    <member name="M:Hangfire.Console.ConsoleExtensions.WriteLine(Hangfire.Server.PerformContext,System.String,System.Object,System.Object)">
+        <attribute ctor="M:JetBrains.Annotations.StringFormatMethodAttribute.#ctor(System.String)">
+            <argument>format</argument>
+        </attribute>
+        <parameter name="format">
+            <attribute ctor="M:JetBrains.Annotations.NotNullAttribute.#ctor"/>
+        </parameter>
+    </member>
+    <member name="M:Hangfire.Console.ConsoleExtensions.WriteLine(Hangfire.Server.PerformContext,System.String,System.Object,System.Object,System.Object)">
+        <attribute ctor="M:JetBrains.Annotations.StringFormatMethodAttribute.#ctor(System.String)">
+            <argument>format</argument>
+        </attribute>
+        <parameter name="format">
+            <attribute ctor="M:JetBrains.Annotations.NotNullAttribute.#ctor"/>
+        </parameter>
+    </member>
+    <member name="M:Hangfire.Console.ConsoleExtensions.WriteLine(Hangfire.Server.PerformContext,System.String,System.Object[])">
+        <attribute ctor="M:JetBrains.Annotations.StringFormatMethodAttribute.#ctor(System.String)">
+            <argument>format</argument>
+        </attribute>
+        <parameter name="format">
+            <attribute ctor="M:JetBrains.Annotations.NotNullAttribute.#ctor"/>
+        </parameter>
+        <parameter name="args">
+            <attribute ctor="M:JetBrains.Annotations.NotNullAttribute.#ctor"/>
+        </parameter>
+    </member>
+    <member name="M:Hangfire.Console.ConsoleExtensions.WriteLine(Hangfire.Server.PerformContext,Hangfire.Console.ConsoleTextColor,System.String,System.Object)">
+        <attribute ctor="M:JetBrains.Annotations.StringFormatMethodAttribute.#ctor(System.String)">
+            <argument>format</argument>
+        </attribute>
+        <parameter name="format">
+            <attribute ctor="M:JetBrains.Annotations.NotNullAttribute.#ctor"/>
+        </parameter>
+    </member>
+    <member name="M:Hangfire.Console.ConsoleExtensions.WriteLine(Hangfire.Server.PerformContext,Hangfire.Console.ConsoleTextColor,System.String,System.Object,System.Object)">
+        <attribute ctor="M:JetBrains.Annotations.StringFormatMethodAttribute.#ctor(System.String)">
+            <argument>format</argument>
+        </attribute>
+        <parameter name="format">
+            <attribute ctor="M:JetBrains.Annotations.NotNullAttribute.#ctor"/>
+        </parameter>
+    </member>
+    <member name="M:Hangfire.Console.ConsoleExtensions.WriteLine(Hangfire.Server.PerformContext,Hangfire.Console.ConsoleTextColor,System.String,System.Object,System.Object,System.Object)">
+        <attribute ctor="M:JetBrains.Annotations.StringFormatMethodAttribute.#ctor(System.String)">
+            <argument>format</argument>
+        </attribute>
+        <parameter name="format">
+            <attribute ctor="M:JetBrains.Annotations.NotNullAttribute.#ctor"/>
+        </parameter>
+    </member>
+    <member name="M:Hangfire.Console.ConsoleExtensions.WriteLine(Hangfire.Server.PerformContext,Hangfire.Console.ConsoleTextColor,System.String,System.Object[])">
+        <attribute ctor="M:JetBrains.Annotations.StringFormatMethodAttribute.#ctor(System.String)">
+            <argument>format</argument>
+        </attribute>
+        <parameter name="format">
+            <attribute ctor="M:JetBrains.Annotations.NotNullAttribute.#ctor"/>
+        </parameter>
+        <parameter name="args">
+            <attribute ctor="M:JetBrains.Annotations.NotNullAttribute.#ctor"/>
+        </parameter>
+    </member>
+</assembly>

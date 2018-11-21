@@ -116,11 +116,15 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Hangfire.Core" Version="1.6.0" />
-    <PackageReference Include="JetBrains.Annotations" Version="11.0.0" PrivateAssets="All" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />
     <PackageReference Include="Newtonsoft.Json" Version="5.0.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="$(AssemblyName).ExternalAnnotations.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 </Project>
