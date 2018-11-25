@@ -42,7 +42,7 @@ namespace Hangfire.Console.Tests.Storage
         {
             var dummyConnection = new Mock<IStorageConnection>();
             
-            Assert.Throws<NotSupportedException>(() => new ConsoleStorage(dummyConnection.Object));
+            Assert.Throws<InvalidCastException>(() => new ConsoleStorage(dummyConnection.Object));
         }
 
         [Fact]
@@ -72,7 +72,7 @@ namespace Hangfire.Console.Tests.Storage
             
             var storage = new ConsoleStorage(_connection.Object);
 
-            Assert.Throws<NotSupportedException>(() => storage.InitConsole(_consoleId));
+            Assert.Throws<InvalidCastException>(() => storage.InitConsole(_consoleId));
         }
 
         [Fact]
@@ -118,10 +118,9 @@ namespace Hangfire.Console.Tests.Storage
             var line = new ConsoleLine() { Message = "test" };
 
             storage.AddLine(_consoleId, line);
-
-            Assert.False(line.IsReference);
+            
             _connection.Verify(x => x.CreateWriteTransaction(), Times.Once);
-            _transaction.Verify(x => x.AddToSet(_consoleId.GetSetKey(), It.IsAny<string>(), It.IsAny<double>()));
+            _transaction.Verify(x => x.AddToSet(_consoleId.GetSetKey(), It.IsAny<string>(), It.IsAny<double>()), Times.Once);
             _transaction.Verify(x => x.SetRangeInHash(_consoleId.GetHashKey(), It.IsAny<IEnumerable<KVP>>()), Times.Never);
             _transaction.Verify(x => x.Commit(), Times.Once);
         }
@@ -138,13 +137,13 @@ namespace Hangfire.Console.Tests.Storage
                           "dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. " +
                           "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
             };
-
+            
             storage.AddLine(_consoleId, line);
-
-            Assert.True(line.IsReference);
+            
             _connection.Verify(x => x.CreateWriteTransaction(), Times.Once);
-            _transaction.Verify(x => x.AddToSet(_consoleId.GetSetKey(), It.IsAny<string>(), It.IsAny<double>()));
-            _transaction.Verify(x => x.SetRangeInHash(_consoleId.GetHashKey(), It2.AnyIs<KVP>(p => p.Key == line.Message)));
+            _transaction.Verify(x => x.AddToSet(_consoleId.GetSetKey(), It.IsAny<string>(), It.IsAny<double>()), Times.Once);
+            _transaction.Verify(x => x.SetRangeInHash(_consoleId.GetHashKey(), It2.AnyIs<KVP>(p => p.Value == line.Message)), Times.Once);
+            _transaction.Verify(x => x.SetRangeInHash(_consoleId.GetHashKey(), It2.AnyIs<KVP>(p => p.Key == "progress")), Times.Never);
             _transaction.Verify(x => x.Commit(), Times.Once);
         }
 
@@ -160,11 +159,11 @@ namespace Hangfire.Console.Tests.Storage
             };
 
             storage.AddLine(_consoleId, line);
-
-            Assert.False(line.IsReference);
+            
             _connection.Verify(x => x.CreateWriteTransaction(), Times.Once);
-            _transaction.Verify(x => x.AddToSet(_consoleId.GetSetKey(), It.IsAny<string>(), It.IsAny<double>()));
-            _transaction.Verify(x => x.SetRangeInHash(_consoleId.GetHashKey(), It2.AnyIs<KVP>(p => p.Key == "progress")));
+            _transaction.Verify(x => x.AddToSet(_consoleId.GetSetKey(), It.IsAny<string>(), It.IsAny<double>()), Times.Once);
+            _transaction.Verify(x => x.SetRangeInHash(_consoleId.GetHashKey(), It2.AnyIs<KVP>(p => p.Key != "progress")), Times.Never);
+            _transaction.Verify(x => x.SetRangeInHash(_consoleId.GetHashKey(), It2.AnyIs<KVP>(p => p.Key == "progress")), Times.Once);
             _transaction.Verify(x => x.Commit(), Times.Once);
         }
         
@@ -367,11 +366,11 @@ namespace Hangfire.Console.Tests.Storage
         }
 
         [Fact]
-        public void GetState_ThrowsException_IfConsoleIdIsNull()
+        public void GetState_ThrowsException_IfJobIdIsNull()
         {
             var storage = new ConsoleStorage(_connection.Object);
 
-            Assert.Throws<ArgumentNullException>("consoleId", () => storage.GetState(null));
+            Assert.Throws<ArgumentNullException>("jobId", () => storage.GetState(null));
         }
 
         [Fact]
@@ -388,7 +387,7 @@ namespace Hangfire.Console.Tests.Storage
 
             var storage = new ConsoleStorage(_connection.Object);
 
-            var result = storage.GetState(_consoleId);
+            var result = storage.GetState(_consoleId.JobId);
 
             Assert.Same(state, result);
         }

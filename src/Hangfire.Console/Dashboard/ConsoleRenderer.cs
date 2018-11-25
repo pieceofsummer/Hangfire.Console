@@ -1,8 +1,6 @@
-﻿using Hangfire.Common;
-using Hangfire.Console.Serialization;
+﻿using Hangfire.Console.Serialization;
 using Hangfire.Console.Storage;
 using Hangfire.Dashboard;
-using Hangfire.States;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -144,7 +142,7 @@ namespace Hangfire.Console.Dashboard
         /// <param name="storage">Console data accessor</param>
         /// <param name="consoleId">Console identifier</param>
         /// <param name="start">Offset to read lines from</param>
-        public static void RenderLineBuffer(StringBuilder builder, IConsoleStorage storage, ConsoleId consoleId, int start)
+        public static void RenderLineBuffer(StringBuilder builder, IConsoleStorageRead storage, ConsoleId consoleId, int start)
         {
             if (builder == null)
                 throw new ArgumentNullException(nameof(builder));
@@ -155,7 +153,7 @@ namespace Hangfire.Console.Dashboard
 
             var items = ReadLines(storage, consoleId, ref start);
 
-            builder.AppendFormat("<div class=\"line-buffer\" data-n=\"{1}\">", consoleId, start);
+            builder.AppendFormat("<div class=\"line-buffer\" data-n=\"{0}\">", start);
             RenderLines(builder, items, consoleId.DateValue);
             builder.Append("</div>");
         }
@@ -170,7 +168,7 @@ namespace Hangfire.Console.Dashboard
         /// On completion, <paramref name="start"/> is set to the end of the current batch, 
         /// and can be used for next requests (or set to -1, if the job has finished processing). 
         /// </remarks>
-        private static IEnumerable<ConsoleLine> ReadLines(IConsoleStorage storage, ConsoleId consoleId, ref int start)
+        private static IEnumerable<ConsoleLine> ReadLines(IConsoleStorageRead storage, ConsoleId consoleId, ref int start)
         {
             if (start < 0) return null;
 
@@ -180,30 +178,29 @@ namespace Hangfire.Console.Dashboard
             if (count > start)
             {
                 // has some new items to fetch
-
+                
+                var progressStep = (start == 0) ? double.MaxValue : 2;
+                
                 Dictionary<string, ConsoleLine> progressBars = null;
                     
                 foreach (var entry in storage.GetLines(consoleId, start, count - 1))
                 {
-                    if (entry.ProgressValue.HasValue)
+                    if (entry.IsProgressBar)
                     {
                         // aggregate progress value updates into single record
 
-                        if (progressBars != null)
-                        {
-                            if (progressBars.TryGetValue(entry.Message, out var prev))
-                            {
-                                prev.ProgressValue = entry.ProgressValue;
-                                prev.TextColor = entry.TextColor;
-                                continue;
-                            }
-                        }
-                        else
+                        if (progressBars == null)
                         {
                             progressBars = new Dictionary<string, ConsoleLine>();
                         }
+                        else if (progressBars.TryGetValue(entry.Message, out var prev) &&
+                                 entry.ProgressValue - prev.InitialValue < progressStep)
+                        {
+                            prev.ProgressValue = entry.ProgressValue;
+                            continue;
+                        }
 
-                        progressBars.Add(entry.Message, entry);
+                        progressBars[entry.Message] = entry;
                     }
 
                     result.Add(entry);
@@ -214,20 +211,16 @@ namespace Hangfire.Console.Dashboard
             {
                 // no new items or initial load, check if the job is still performing
 
-                var state = storage.GetState(consoleId);
+                var state = storage.GetState(consoleId.JobId);
                 if (state == null)
                 {
                     // No state found for a job, probably it was deleted
                     count = -2;
                 }
-                else
+                else if (!ConsoleId.TryCreate(consoleId.JobId, state, out var currentId) || currentId != consoleId)
                 {
-                    if (!string.Equals(state.Name, ProcessingState.StateName, StringComparison.OrdinalIgnoreCase) ||
-                        !consoleId.Equals(new ConsoleId(consoleId.JobId, JobHelper.DeserializeDateTime(state.Data["StartedAt"]))))
-                    {
-                        // Job state has changed (either not Processing, or another Processing with different console id)
-                        count = -1;
-                    }
+                    // Job state has changed (either not Processing, or another Processing with different console id)
+                    count = -1;
                 }
             }
 

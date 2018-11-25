@@ -2,6 +2,9 @@
 
 namespace Hangfire.Console.Serialization
 {
+    /// <summary>
+    /// Console line
+    /// </summary>
     internal class ConsoleLine
     {
         /// <summary>
@@ -17,7 +20,13 @@ namespace Hangfire.Console.Serialization
         public bool IsReference { get; set; }
 
         /// <summary>
-        /// Message text, or message reference, or progress bar id
+        /// True if the line is a progressbar update.
+        /// </summary>
+        [JsonIgnore]
+        public bool IsProgressBar => ProgressValue.HasValue;
+        
+        /// <summary>
+        /// Message text, or message reference, or progressbar id
         /// </summary>
         [JsonProperty("s", Required = Required.Always)]
         public string Message { get; set; }
@@ -34,6 +43,9 @@ namespace Hangfire.Console.Serialization
         [JsonProperty("p", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public double? ProgressValue { get; set; }
 
+        [JsonIgnore]
+        internal double InitialValue { get; set; }
+        
         /// <summary>
         /// Optional name for a progress bar
         /// </summary>

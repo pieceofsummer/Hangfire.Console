@@ -3,6 +3,7 @@ using Hangfire.Console.Serialization;
 using Hangfire.Console.Storage;
 using Hangfire.Server;
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
 
@@ -10,10 +11,14 @@ namespace Hangfire.Console.Server
 {
     internal class ConsoleContext
     {
+        public const string Key = "ConsoleContext";
+        
         private readonly ConsoleId _consoleId;
-        private readonly IConsoleStorage _storage;
+        private readonly IConsoleStorageWrite _storage;
         private double _lastTimeOffset;
         private int _nextProgressBarId;
+        private readonly Stopwatch _timer;
+        private int _count;
 
         public static ConsoleContext FromPerformContext(PerformContext context)
         {
@@ -23,16 +28,16 @@ namespace Hangfire.Console.Server
                 return null;
             }
 
-            if (!context.Items.ContainsKey("ConsoleContext"))
+            if (!context.Items.TryGetValue(Key, out var value))
             {
                 // Absence of ConsoleContext means ConsoleServerFilter was not properly added
                 return null;
             }
 
-            return (ConsoleContext)context.Items["ConsoleContext"];
+            return (ConsoleContext)value;
         }
 
-        public ConsoleContext(ConsoleId consoleId, IConsoleStorage storage)
+        public ConsoleContext(ConsoleId consoleId, IConsoleStorageWrite storage)
         {
             _consoleId = consoleId ?? throw new ArgumentNullException(nameof(consoleId));
             _storage = storage ?? throw new ArgumentNullException(nameof(storage));
@@ -41,6 +46,9 @@ namespace Hangfire.Console.Server
             _nextProgressBarId = 0;
 
             _storage.InitConsole(_consoleId);
+            
+            _timer = new Stopwatch();
+            _count = 0;
         }
 
         public ConsoleTextColor TextColor { get; set; }
@@ -49,11 +57,13 @@ namespace Hangfire.Console.Server
         {
             if (line == null)
                 throw new ArgumentNullException(nameof(line));
-
+            
+            _timer.Start();
+            
             lock (this)
             {
                 line.TimeOffset = Math.Round((DateTime.UtcNow - _consoleId.DateValue).TotalSeconds, 3);
-
+                
                 if (_lastTimeOffset >= line.TimeOffset)
                 {
                     // prevent duplicate lines collapsing
@@ -64,6 +74,9 @@ namespace Hangfire.Console.Server
 
                 _storage.AddLine(_consoleId, line);
             }
+            
+            _timer.Stop();
+            _count++;
         }
         
         public void WriteLine(string value, ConsoleTextColor color)
@@ -99,6 +112,11 @@ namespace Hangfire.Console.Server
             }
             
             _storage.Expire(_consoleId, ttl);
+        }
+        
+        public void Flush()
+        {
+            Debug.WriteLine("[AddLine latency]: {0} / {1} = {2}", _timer.Elapsed, _count, _timer.Elapsed.TotalMilliseconds / _count);
         }
     }
 }

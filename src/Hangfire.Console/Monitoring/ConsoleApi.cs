@@ -8,7 +8,7 @@ namespace Hangfire.Console.Monitoring
 {
     internal class ConsoleApi : IConsoleApi
     {
-        private readonly IConsoleStorage _storage;
+        private readonly IConsoleStorageRead _storage;
 
         public ConsoleApi(IStorageConnection connection)
         {
@@ -42,23 +42,19 @@ namespace Hangfire.Console.Monitoring
 
                         // aggregate progress value updates into single record
 
-                        if (progressBars != null)
-                        {
-                            if (progressBars.TryGetValue(entry.Message, out var prev))
-                            {
-                                prev.Progress = entry.ProgressValue.Value;
-                                prev.Color = entry.TextColor;
-                                continue;
-                            }
-                        }
-                        else
+                        if (progressBars == null)
                         {
                             progressBars = new Dictionary<string, ProgressBarDto>();
                         }
+                        else if (progressBars.TryGetValue(entry.Message, out var prev))
+                        {
+                            prev.Progress = entry.ProgressValue.Value;
+                            continue;
+                        }
 
                         var line = new ProgressBarDto(entry, timestamp);
-
                         progressBars.Add(entry.Message, line);
+                        
                         result.Add(line);
                     }
                     else

@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
-using Hangfire.Common;
 using Hangfire.Console.Serialization;
 using Hangfire.Console.Storage;
 using Hangfire.Dashboard;
-using Hangfire.States;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -45,16 +43,13 @@ namespace Hangfire.Console.Dashboard
             {
                 // there are some jobs to process
                 
-                using (var connection = context.Storage.GetConnection())
-                using (var storage = new ConsoleStorage(connection))
+                using (var storage = new ConsoleStorage(context.Storage.GetConnection()))
                 {
                     foreach (var jobId in jobIds)
                     {
-                        var state = connection.GetStateData(jobId);
-                        if (state != null && string.Equals(state.Name, ProcessingState.StateName, StringComparison.OrdinalIgnoreCase))
+                        var state = storage.GetState(jobId);
+                        if (ConsoleId.TryCreate(jobId, state, out var consoleId))
                         {
-                            var consoleId = new ConsoleId(jobId, JobHelper.DeserializeDateTime(state.Data["StartedAt"]));
-                            
                             var progress = storage.GetProgress(consoleId);
                             if (progress.HasValue)
                                 result[jobId] = progress.Value;

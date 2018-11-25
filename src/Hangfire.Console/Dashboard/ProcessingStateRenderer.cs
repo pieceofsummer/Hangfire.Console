@@ -1,5 +1,4 @@
-﻿using Hangfire.Common;
-using Hangfire.Console.Serialization;
+﻿using Hangfire.Console.Serialization;
 using Hangfire.Console.Storage;
 using Hangfire.Dashboard;
 using Hangfire.Dashboard.Extensions;
@@ -64,19 +63,19 @@ namespace Hangfire.Console.Dashboard
                 // We cannot cast page to an internal type JobDetailsPage to get jobId :(
                 var jobId = page.RequestPath.Substring("/jobs/details/".Length);
 
-                var startedAt = JobHelper.DeserializeDateTime(stateData["StartedAt"]);
-                var consoleId = new ConsoleId(jobId, startedAt);
-
-                builder.Append("<div class=\"console-area\">");
-                builder.AppendFormat("<div class=\"console\" data-id=\"{0}\">", consoleId);
-
-                using (var storage = new ConsoleStorage(page.Storage.GetConnection()))
+                if (ConsoleId.TryCreate(jobId, stateData, out var consoleId))
                 {
-                    ConsoleRenderer.RenderLineBuffer(builder, storage, consoleId, 0);
-                }
+                    builder.Append("<div class=\"console-area\">");
+                    builder.AppendFormat("<div class=\"console\" data-id=\"{0}\">", consoleId);
 
-                builder.Append("</div>");
-                builder.Append("</div>");
+                    using (var storage = new ConsoleStorage(page.Storage.GetConnection()))
+                    {
+                        ConsoleRenderer.RenderLineBuffer(builder, storage, consoleId, 0);
+                    }
+
+                    builder.Append("</div>");
+                    builder.Append("</div>");
+                }
             }
 
             return new NonEscapedString(builder.ToString());

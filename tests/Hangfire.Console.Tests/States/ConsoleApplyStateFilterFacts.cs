@@ -6,8 +6,7 @@ using Hangfire.Storage.Monitoring;
 using Moq;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Hangfire.Console.Runtime;
 using Xunit;
 
 namespace Hangfire.Console.Tests.States
@@ -35,6 +34,13 @@ namespace Hangfire.Console.Tests.States
 
             _connection.Setup(x => x.CreateWriteTransaction())
                 .Returns(_transaction.Object);
+            _connection.Setup(x => x.GetJobData("1"))
+                .Returns(CreateJobData(ProcessingState.StateName));
+            
+            _monitoring.Setup(x => x.JobDetails("1"))
+                .Returns(CreateJobDetails());
+            
+            JobStorageInfo.MockSetup(_connection.Object, _transaction.Object);
         }
 
         [Fact]
@@ -42,10 +48,7 @@ namespace Hangfire.Console.Tests.States
         {
             _otherFilter.Setup(x => x.OnStateApplied(It.IsAny<ApplyStateContext>(), It.IsAny<IWriteOnlyTransaction>()))
                 .Callback<ApplyStateContext, IWriteOnlyTransaction>((c, t) => c.JobExpirationTimeout = TimeSpan.FromSeconds(123));
-            _connection.Setup(x => x.GetJobData("1"))
-                .Returns(CreateJobData(ProcessingState.StateName));
-            _monitoring.Setup(x => x.JobDetails("1"))
-                .Returns(CreateJobDetails());
+
 
             var stateChanger = new BackgroundJobStateChanger(CreateJobFilterProvider());
             var context = CreateStateChangeContext(new MockSucceededState());
@@ -57,30 +60,80 @@ namespace Hangfire.Console.Tests.States
         }
         
         [Fact]
-        public void DoesNotExpire_IfNotFollowsJobRetention()
+        public void OnStateApplied_InterruptsProcessing_IfNotFollowsJobRetention()
         {
-            _connection.Setup(x => x.GetJobData("1"))
-                .Returns(CreateJobData(ProcessingState.StateName));
-            _monitoring.Setup(x => x.JobDetails("1"))
-                .Returns(CreateJobDetails());
-            
             var stateChanger = new BackgroundJobStateChanger(CreateJobFilterProvider(false));
             var context = CreateStateChangeContext(new MockSucceededState());
             
             stateChanger.ChangeState(context);
+            
+            _storage.Verify(x => x.GetMonitoringApi(), Times.Never);
+            _monitoring.Verify(x => x.JobDetails("1"), Times.Never);
+            _transaction.Verify(x => x.ExpireSet(It.IsAny<string>(), It.IsAny<TimeSpan>()), Times.Never);
+            _transaction.Verify(x => x.ExpireHash(It.IsAny<string>(), It.IsAny<TimeSpan>()), Times.Never);
+        }
+        
+        [Fact]
+        public void OnStateApplied_InterruptsProcessing_IfConnectionIsNotJobStorageConnection()
+        {
+            var connection = new Mock<IStorageConnection>();
+            
+            connection.Setup(x => x.CreateWriteTransaction())
+                .Returns(_transaction.Object);
+            connection.Setup(x => x.GetJobData("1"))
+                .Returns(CreateJobData(ProcessingState.StateName));
+            _storage.Setup(x => x.GetConnection())
+                .Returns(connection.Object);
+            
+            JobStorageInfo.MockSetup(connection.Object, _transaction.Object);
 
+            var stateChanger = new BackgroundJobStateChanger(CreateJobFilterProvider(false));
+            var context = CreateStateChangeContext(connection.Object, new MockSucceededState());
+            
+            stateChanger.ChangeState(context);
+
+            _storage.Verify(x => x.GetMonitoringApi(), Times.Never);
+            _transaction.Verify(x => x.ExpireSet(It.IsAny<string>(), It.IsAny<TimeSpan>()), Times.Never);
+            _transaction.Verify(x => x.ExpireHash(It.IsAny<string>(), It.IsAny<TimeSpan>()), Times.Never);
+        }
+        
+        [Fact]
+        public void OnStateApplied_InterruptsProcessing_IfTransactionIsNotJobStorageTransaction()
+        {
+            var transaction = new Mock<IWriteOnlyTransaction>();
+            
+            _connection.Setup(x => x.CreateWriteTransaction())
+                .Returns(transaction.Object);
+            
+            JobStorageInfo.MockSetup(_connection.Object, transaction.Object);
+
+            var stateChanger = new BackgroundJobStateChanger(CreateJobFilterProvider(false));
+            var context = CreateStateChangeContext(_connection.Object, new MockSucceededState());
+            
+            stateChanger.ChangeState(context);
+
+            _storage.Verify(x => x.GetMonitoringApi(), Times.Never);
             _transaction.Verify(x => x.ExpireSet(It.IsAny<string>(), It.IsAny<TimeSpan>()), Times.Never);
             _transaction.Verify(x => x.ExpireHash(It.IsAny<string>(), It.IsAny<TimeSpan>()), Times.Never);
         }
 
         [Fact]
-        public void Expires_IfStateIsFinal()
+        public void OnStateApplied_InterruptsProcessing_IfJobDetailsNotFound()
         {
-            _connection.Setup(x => x.GetJobData("1"))
-                .Returns(CreateJobData(ProcessingState.StateName));
-            _monitoring.Setup(x => x.JobDetails("1"))
-                .Returns(CreateJobDetails());
+            var stateChanger = new BackgroundJobStateChanger(CreateJobFilterProvider());
+            var context = CreateStateChangeContext(new MockSucceededState());
 
+            stateChanger.ChangeState(context);
+
+            _storage.Verify(x => x.GetMonitoringApi());
+            _monitoring.Verify(x => x.JobDetails("1"));
+            _transaction.Verify(x => x.ExpireSet(It.IsAny<string>(), It.IsAny<TimeSpan>()));
+            _transaction.Verify(x => x.ExpireHash(It.IsAny<string>(), It.IsAny<TimeSpan>()));
+        }
+        
+        [Fact]
+        public void OnStateApplied_ExpiresConsole_IfJobStateIsFinal()
+        {
             var stateChanger = new BackgroundJobStateChanger(CreateJobFilterProvider());
             var context = CreateStateChangeContext(new MockSucceededState());
 
@@ -91,13 +144,8 @@ namespace Hangfire.Console.Tests.States
         }
         
         [Fact]
-        public void Persists_IfStateIsNotFinal()
+        public void OnStateApplied_PersistsConsoles_IfJobStateIsNotFinal()
         {
-            _connection.Setup(x => x.GetJobData("1"))
-                .Returns(CreateJobData(ProcessingState.StateName));
-            _monitoring.Setup(x => x.JobDetails("1"))
-                .Returns(CreateJobDetails());
-
             var stateChanger = new BackgroundJobStateChanger(CreateJobFilterProvider());
             var context = CreateStateChangeContext(new MockFailedState());
             
@@ -147,15 +195,20 @@ namespace Hangfire.Console.Tests.States
             }
         }
 
-        private StateChangeContext CreateStateChangeContext(IState state)
+        private StateChangeContext CreateStateChangeContext(IState state) => CreateStateChangeContext(_connection.Object, state);
+
+        private StateChangeContext CreateStateChangeContext(IStorageConnection connection, IState state)
         {
-            return new StateChangeContext(_storage.Object, _connection.Object, "1", state);
+            return new StateChangeContext(_storage.Object, connection, "1", state);
         }
 
-        public static void JobMethod()
+        private static class JobClass
         {
+            public static void JobMethod()
+            {
+            }
         }
-        
+
         private JobDetailsDto CreateJobDetails()
         {
             var date = DateTime.UtcNow.AddHours(-1);
@@ -189,7 +242,7 @@ namespace Hangfire.Console.Tests.States
             return new JobDetailsDto()
             {
                 CreatedAt = history[0].CreatedAt,
-                Job = Job.FromExpression(() => JobMethod()),
+                Job = Job.FromExpression(() => JobClass.JobMethod()),
                 History = history
             };
         }
@@ -199,7 +252,7 @@ namespace Hangfire.Console.Tests.States
             return new JobData()
             {
                 CreatedAt = DateTime.UtcNow.AddHours(-1),
-                Job = Job.FromExpression(() => JobMethod()),
+                Job = Job.FromExpression(() => JobClass.JobMethod()),
                 State = state
             };
         }

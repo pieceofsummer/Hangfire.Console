@@ -9,11 +9,11 @@ namespace Hangfire.Console.Tests.Server
 {
     public class ConsoleContextFacts
     {
-        private readonly Mock<IConsoleStorage> _storage;
+        private readonly Mock<IConsoleStorageWrite> _storage;
 
         public ConsoleContextFacts()
         {
-            _storage = new Mock<IConsoleStorage>();
+            _storage = new Mock<IConsoleStorageWrite>();
         }
 
         [Fact]

@@ -1,10 +1,13 @@
-﻿using Hangfire.States;
-using System;
+﻿using System;
 using System.Linq;
+using Hangfire.Console.Runtime;
+using Hangfire.States;
 using Hangfire.Storage;
 using Hangfire.Console.Serialization;
-using Hangfire.Common;
+using Hangfire.Console.Server;
 using Hangfire.Console.Storage;
+using Hangfire.Console.Storage.Operations;
+using Hangfire.Console.Utils;
 
 namespace Hangfire.Console.States
 {
@@ -25,31 +28,46 @@ namespace Hangfire.Console.States
                 // Do not expire here, will be expired by ConsoleServerFilter.
                 return;
             }
+            
+            if (!context.Connection.IsSupported())
+            {
+                // Unsupported job storage provider
+                return;
+            }
 
-            var jobDetails = context.Storage.GetMonitoringApi().JobDetails(context.BackgroundJob.Id);
-            if (jobDetails == null || jobDetails.History == null)
+            var details = context.Storage.GetMonitoringApi().JobDetails(context.BackgroundJob.Id);
+            if (details?.History == null)
             {
                 // WTF?!
                 return;
             }
 
-            var expiration = new ConsoleExpirationTransaction((JobStorageTransaction)transaction);
-
-            foreach (var state in jobDetails.History.Where(x => x.StateName == ProcessingState.StateName))
+            if (!ConsoleCentral.TryGetCentral(context.Storage, out var central))
+                central = null;
+            
+            foreach (var state in details.History.Where(x => x.IsProcessingState()))
             {
-                var consoleId = new ConsoleId(context.BackgroundJob.Id, JobHelper.DeserializeDateTime(state.Data["StartedAt"]));
+                if (!ConsoleId.TryCreate(context.BackgroundJob.Id, state.Data, out var consoleId)) continue;
 
+                Operation operation;
+                
                 if (context.NewState.IsFinal)
                 {
                     // Job in final state is a subject for expiration.
-                    // To keep storage clean, its console sessions should also be expired.
-                    expiration.Expire(consoleId, context.JobExpirationTimeout);
+                    // All console sessions should also be expired along with it.
+                    operation = new ExpireOperation(consoleId, context.JobExpirationTimeout);
                 }
                 else
                 {
-                    // Job will be persisted, so should its console sessions.
-                    expiration.Persist(consoleId);
+                    // Job will be persisted, so should all its console sessions.
+                    operation = new PersistOperation(consoleId);
                 }
+                
+                operation.Apply((JobStorageTransaction)transaction);
+                
+                // also push operation to Central, if available
+                // so all future writes are correctly expired/persisted
+                central?.Write(operation);
             }
         }
 

@@ -16,13 +16,13 @@ namespace Hangfire.Console.Tests.Dashboard
     public class ConsoleRendererFacts
     {
         private readonly ConsoleId _consoleId;
-        private readonly Mock<IConsoleStorage> _storage;
+        private readonly Mock<IConsoleStorageRead> _storage;
 
         public ConsoleRendererFacts()
         {
             _consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
 
-            _storage = new Mock<IConsoleStorage>();
+            _storage = new Mock<IConsoleStorageRead>();
         }
 
         [Fact]
@@ -312,7 +312,7 @@ namespace Hangfire.Console.Tests.Dashboard
         }
 
         [Fact]
-        public void RenderLineBuffer_AggregatesMultipleProgressLines()
+        public void RenderLineBuffer_ProgressBars_AggregatesMultipleLines()
         {
             SetupStorage(CreateState(ProcessingState.StateName, _consoleId.DateValue),
                 new ConsoleLine() { TimeOffset = 0, Message = "0", ProgressValue = 1 },
@@ -326,6 +326,23 @@ namespace Hangfire.Console.Tests.Dashboard
                 "<div class=\"line-buffer\" data-n=\"3\">" +
                 "<div class=\"line pb\" data-id=\"0\"><span data-moment-title=\"1451606400\">+ <1ms</span><div class=\"pv\" style=\"width:5%\" data-value=\"5\"></div></div>" +
                 "<div class=\"line pb\" data-id=\"1\"><span data-moment-title=\"1451606401\">+1s</span><div class=\"pv\" style=\"width:3%\" data-value=\"3\"></div></div>" +
+                "</div>", builder.ToString());
+        }
+        
+        [Fact]
+        public void RenderLineBuffer_ProgressBars_PreservesInitialNameAndColor()
+        {
+            SetupStorage(CreateState(ProcessingState.StateName, _consoleId.DateValue),
+                new ConsoleLine() { TimeOffset = 0, Message = "0", ProgressValue = 1, TextColor = "red", ProgressName = "aaa" },
+                new ConsoleLine() { TimeOffset = 1, Message = "0", ProgressValue = 3, ProgressName = "bbb" },
+                new ConsoleLine() { TimeOffset = 2, Message = "0", ProgressValue = 5, TextColor = "blue" });
+            
+            var builder = new StringBuilder();
+            ConsoleRenderer.RenderLineBuffer(builder, _storage.Object, _consoleId, 0);
+
+            Assert.Equal(
+                "<div class=\"line-buffer\" data-n=\"3\">" +
+                "<div class=\"line pb\" style=\"color:red\" data-id=\"0\"><span data-moment-title=\"1451606400\">aaa</span><div class=\"pv\" style=\"width:5%\" data-value=\"5\"></div></div>" +
                 "</div>", builder.ToString());
         }
         
@@ -343,7 +360,7 @@ namespace Hangfire.Console.Tests.Dashboard
 
         private void SetupStorage(StateData stateData, params ConsoleLine[] lines)
         {
-            _storage.Setup(x => x.GetState(It.IsAny<ConsoleId>()))
+            _storage.Setup(x => x.GetState(It.IsAny<string>()))
                 .Returns(stateData);
             _storage.Setup(x => x.GetLineCount(It.IsAny<ConsoleId>()))
                 .Returns(lines.Length);

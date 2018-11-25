@@ -1,9 +1,8 @@
-﻿using Hangfire.Common;
+﻿using System;
+using Hangfire.Console.Runtime;
 using Hangfire.Console.Serialization;
 using Hangfire.Console.Storage;
 using Hangfire.Server;
-using Hangfire.States;
-using System;
 
 namespace Hangfire.Console.Server
 {
@@ -19,31 +18,46 @@ namespace Hangfire.Console.Server
             _options = options ?? throw new ArgumentNullException(nameof(options));
         }
 
-        public void OnPerforming(PerformingContext filterContext)
+        public void OnPerforming(PerformingContext context)
         {
-            var state = filterContext.Connection.GetStateData(filterContext.BackgroundJob.Id);
-
-            if (state == null)
+            if (!context.Connection.IsSupported())
             {
-                // State for job not found?
-                return;
-            }
-
-            if (!string.Equals(state.Name, ProcessingState.StateName, StringComparison.OrdinalIgnoreCase))
-            {
-                // Not in Processing state? Something is really off...
+                // Unsupported job storage provider
                 return;
             }
             
-            var startedAt = JobHelper.DeserializeDateTime(state.Data["StartedAt"]);
+            var state = context.Connection.GetStateData(context.BackgroundJob.Id);
 
-            filterContext.Items["ConsoleContext"] = new ConsoleContext(
-                new ConsoleId(filterContext.BackgroundJob.Id, startedAt),
-                new ConsoleStorage(filterContext.Connection));
+            if (!ConsoleId.TryCreate(context.BackgroundJob.Id, state, out var consoleId))
+            {
+                // Not in Processing state
+                return;
+            }
+
+            IOperationStream stream = null;
+            
+            if (state.TryGetCentral(out var central))
+            {
+                // open an asynchronous background write stream
+                stream = central.CreateConsoleStream(consoleId);
+            }
+            
+            var storage = new ConsoleStorage(context.Connection, stream);
+            
+            context.Items[ConsoleContext.Key] = new ConsoleContext(consoleId, storage);
         }
 
-        public void OnPerformed(PerformedContext filterContext)
+        public void OnPerformed(PerformedContext context)
         {
+            var console = ConsoleContext.FromPerformContext(context);
+            if (console == null)
+            {
+                // Console was not initialized in OnPerforming
+                return;
+            }
+            
+            console.Flush();
+
             if (_options.FollowJobRetentionPolicy)
             {
                 // Console sessions follow parent job expiration.
@@ -54,15 +68,15 @@ namespace Hangfire.Console.Server
                 // If anything is written to console after the job was deleted, it won't get a correct expiration assigned.
 
                 // Need to re-apply expiration to prevent those records from becoming eternal garbage.
-                ConsoleContext.FromPerformContext(filterContext)?.FixExpiration();
+                console.FixExpiration();
             }
             else
             {
-                ConsoleContext.FromPerformContext(filterContext)?.Expire(_options.ExpireIn);
+                console.Expire(_options.ExpireIn);
             }
-            
+
             // remove console context to prevent further writes from filters
-            filterContext.Items.Remove("ConsoleContext");
+            context.Items.Remove(ConsoleContext.Key);
         }
     }
 }

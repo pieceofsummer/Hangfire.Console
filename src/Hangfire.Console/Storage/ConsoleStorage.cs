@@ -4,31 +4,48 @@ using System.Globalization;
 using Hangfire.Console.Serialization;
 using Hangfire.Storage;
 using Hangfire.Common;
+using Hangfire.Console.Storage.Operations;
 
 namespace Hangfire.Console.Storage
 {
-    internal class ConsoleStorage : IConsoleStorage
+    internal class ConsoleStorage : IConsoleStorageRead, IConsoleStorageWrite
     {
-        private const int ValueFieldLimit = 256;
-
         private readonly JobStorageConnection _connection;
-
-        public ConsoleStorage(IStorageConnection connection)
+        private readonly IOperationStream _stream;
+        
+        public ConsoleStorage(IStorageConnection connection, IOperationStream stream = null)
         {
-            if (connection == null)
-                throw new ArgumentNullException(nameof(connection));
-
-            if (!(connection is JobStorageConnection jobStorageConnection))
-                throw new NotSupportedException("Storage connections must implement JobStorageConnection");
-            
-            _connection = jobStorageConnection;
+            _connection = (JobStorageConnection)connection ?? throw new ArgumentNullException(nameof(connection));
+            _stream = stream; // can be null
         }
 
         public void Dispose()
         {
             _connection.Dispose();
         }
-
+        
+        private void Write(Operation operation, bool sync = false)
+        {
+            if (_stream == null || sync)
+            {
+                // commit synchronously
+                
+                using (var transaction = (JobStorageTransaction)_connection.CreateWriteTransaction())
+                {
+                    operation.Apply(transaction);
+                    transaction.Commit();
+                }
+            }
+            else
+            {
+                // post to Central stream
+                
+                _stream.Write(operation);
+            }
+        }
+        
+        #region IConsoleStorageWrite
+        
         public void InitConsole(ConsoleId consoleId)
         {
             if (consoleId == null)
@@ -36,16 +53,7 @@ namespace Hangfire.Console.Storage
 
             // We add an extra "jobId" record into Hash for console,
             // to correctly track TTL even if console contains no lines
-
-            using (var transaction = _connection.CreateWriteTransaction())
-            {
-                if (!(transaction is JobStorageTransaction))
-                    throw new NotSupportedException("Storage tranactions must implement JobStorageTransaction");
-                
-                transaction.SetRangeInHash(consoleId.GetHashKey(), new[] { new KeyValuePair<string, string>("jobId", consoleId.JobId) });
-                
-                transaction.Commit();
-            }
+            Write(new InitOperation(consoleId), true);
         }
 
         public void AddLine(ConsoleId consoleId, ConsoleLine line)
@@ -57,51 +65,13 @@ namespace Hangfire.Console.Storage
             if (line.IsReference)
                 throw new ArgumentException("Cannot add reference directly", nameof(line));
             
-            using (var tran = _connection.CreateWriteTransaction())
+            if (line.IsProgressBar)
             {
-                // check if encoded message fits into Set's Value field
-
-                string value;
-
-                if (line.Message.Length > ValueFieldLimit - 36)
-                {
-                    // pretty sure it won't fit
-                    // (36 is an upper bound for JSON formatting, TimeOffset and TextColor)
-                    value = null;
-                }
-                else
-                {
-                    // try to encode and see if it fits
-                    value = JobHelper.ToJson(line);
-
-                    if (value.Length > ValueFieldLimit)
-                    {
-                        value = null;
-                    }
-                }
-                
-                if (value == null)
-                {
-                    var referenceKey = Guid.NewGuid().ToString("N");
-
-                    tran.SetRangeInHash(consoleId.GetHashKey(), new[] { new KeyValuePair<string, string>(referenceKey, line.Message) });
-
-                    line.Message = referenceKey;
-                    line.IsReference = true;
-
-                    value = JobHelper.ToJson(line);
-                }
-
-                tran.AddToSet(consoleId.GetSetKey(), value, line.TimeOffset);
-
-                if (line.ProgressValue.HasValue && line.Message == "1")
-                {
-                    var progress = line.ProgressValue.Value.ToString(CultureInfo.InvariantCulture);
-                    
-                    tran.SetRangeInHash(consoleId.GetHashKey(), new[] { new KeyValuePair<string, string>("progress", progress) });
-                }
-                
-                tran.Commit();
+                Write(new ProgressBarOperation(consoleId, line));
+            }
+            else
+            {
+                Write(new LineOperation(consoleId, line));
             }
         }
         
@@ -118,15 +88,13 @@ namespace Hangfire.Console.Storage
             if (consoleId == null)
                 throw new ArgumentNullException(nameof(consoleId));
 
-            using (var tran = (JobStorageTransaction)_connection.CreateWriteTransaction())
-            using (var expiration = new ConsoleExpirationTransaction(tran))
-            {
-                expiration.Expire(consoleId, expireIn);
-
-                tran.Commit();
-            }
+            Write(new ExpireOperation(consoleId, expireIn));
         }
+        
+        #endregion
 
+        #region IConsoleStorageRead
+        
         public int GetLineCount(ConsoleId consoleId)
         {
             if (consoleId == null)
@@ -186,17 +154,21 @@ namespace Hangfire.Console.Storage
                     
                     line.IsReference = false;
                 }
+                else if (line.ProgressValue.HasValue)
+                {
+                    line.InitialValue = line.ProgressValue.Value;
+                }
 
                 yield return line;
             }
         }
 
-        public StateData GetState(ConsoleId consoleId)
+        public StateData GetState(string jobId)
         {
-            if (consoleId == null)
-                throw new ArgumentNullException(nameof(consoleId));
+            if (jobId == null)
+                throw new ArgumentNullException(nameof(jobId));
 
-            return _connection.GetStateData(consoleId.JobId);
+            return _connection.GetStateData(jobId);
         }
 
         public double? GetProgress(ConsoleId consoleId)
@@ -221,5 +193,7 @@ namespace Hangfire.Console.Storage
                 return null;
             }
         }
+
+        #endregion
     }
 }

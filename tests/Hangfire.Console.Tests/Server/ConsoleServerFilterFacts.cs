@@ -6,6 +6,7 @@ using Hangfire.Storage;
 using Moq;
 using System;
 using System.Collections.Generic;
+using Hangfire.Console.Runtime;
 using Xunit;
 
 namespace Hangfire.Console.Tests.Server
@@ -26,25 +27,71 @@ namespace Hangfire.Console.Tests.Server
 
             _connection.Setup(x => x.CreateWriteTransaction())
                 .Returns(_transaction.Object);
+            _connection.Setup(x => x.GetStateData("1"))
+                .Returns(CreateState(ProcessingState.StateName));
+            
+            JobStorageInfo.MockSetup(_connection.Object, _transaction.Object);
         }
-
+        
         [Fact]
-        public void DoesNotCreateConsoleContext_IfStateNotFound()
+        public void OnPerforming_InterruptsProcessing_IfConnectionIsNotJobStorageConnection()
+        {
+            var connection = new Mock<IStorageConnection>();
+            
+            connection.Setup(x => x.CreateWriteTransaction())
+                .Returns(_transaction.Object);
+            connection.Setup(x => x.GetStateData("1"))
+                .Returns(CreateState(ProcessingState.StateName));
+            
+            JobStorageInfo.MockSetup(connection.Object, _transaction.Object);
+            
+            var performer = new BackgroundJobPerformer(CreateJobFilterProvider());
+            var context = CreatePerformContext(connection.Object, _transaction.Invocations);
+
+            performer.Perform(context);
+            
+            connection.Verify(x => x.GetStateData(It.IsAny<string>()), Times.Never);
+            connection.Verify(x => x.CreateWriteTransaction(), Times.Never);
+        }
+        
+        [Fact]
+        public void OnPerforming_InterruptsProcessing_IfTransactionIsNotJobStorageTransaction()
+        {
+            var transaction = new Mock<IWriteOnlyTransaction>();
+            
+            _connection.Setup(x => x.CreateWriteTransaction())
+                .Returns(transaction.Object);
+            _connection.Setup(x => x.GetHashTtl(It.IsAny<string>()))
+                .Returns(TimeSpan.FromSeconds(1));
+            
+            JobStorageInfo.MockSetup(_connection.Object, transaction.Object);
+            
+            var performer = new BackgroundJobPerformer(CreateJobFilterProvider());
+            var context = CreatePerformContext(_connection.Object, transaction.Invocations);
+
+            performer.Perform(context);
+            
+            _connection.Verify(x => x.GetStateData(It.IsAny<string>()), Times.Never);
+            _connection.Verify(x => x.CreateWriteTransaction(), Times.Never);
+        }
+        
+        [Fact]
+        public void OnPerforming_DoesNotCreateConsoleContext_IfStateNotFound()
         {
             _connection.Setup(x => x.GetStateData("1"))
                 .Returns((StateData)null);
-
+            
             var performer = new BackgroundJobPerformer(CreateJobFilterProvider());
             var context = CreatePerformContext();
 
             performer.Perform(context);
-
-            var consoleContext = ConsoleContext.FromPerformContext(context);
-            Assert.Null(consoleContext);
+            
+            _connection.Verify(x => x.GetStateData("1"));
+            _connection.Verify(x => x.CreateWriteTransaction(), Times.Never);
         }
 
         [Fact]
-        public void DoesNotCreateConsoleContext_IfStateIsNotProcessing()
+        public void OnPerforming_DoesNotCreateConsoleContext_IfStateIsNotProcessing()
         {
             _connection.Setup(x => x.GetStateData("1"))
                 .Returns(CreateState(SucceededState.StateName));
@@ -53,35 +100,29 @@ namespace Hangfire.Console.Tests.Server
             var context = CreatePerformContext();
 
             performer.Perform(context);
-
-            var consoleContext = ConsoleContext.FromPerformContext(context);
-            Assert.Null(consoleContext);
+            
+            _connection.Verify(x => x.GetStateData("1"));
+            _connection.Verify(x => x.CreateWriteTransaction(), Times.Never);
         }
         
         [Fact]
-        public void CreatesConsoleContext_IfStateIsProcessing_DoesNotExpireData_IfConsoleNotPresent()
+        public void OnPerforming_CreatesConsoleContext_IfStateIsProcessing__OnPerformed_DoesNotExpireData_IfConsoleNotPresent()
         {
-            _connection.Setup(x => x.GetStateData("1"))
-                .Returns(CreateState(ProcessingState.StateName));
             _otherFilter.Setup(x => x.OnPerforming(It.IsAny<PerformingContext>()))
-                .Callback<PerformingContext>(x => { x.Items.Remove("ConsoleContext"); });
+                .Callback<PerformingContext>(x => { x.Items.Remove(ConsoleContext.Key); });
 
             var performer = new BackgroundJobPerformer(CreateJobFilterProvider());
             var context = CreatePerformContext();
 
             performer.Perform(context);
-
-            var consoleContext = ConsoleContext.FromPerformContext(context);
-            Assert.Null(consoleContext);
-
+            
+            _connection.Verify(x => x.GetStateData("1"));
             _transaction.Verify(x => x.Commit(), Times.Never);
         }
 
         [Fact]
-        public void CreatesConsoleContext_IfStateIsProcessing_FixesExpiration_IfFollowsJobRetention()
+        public void OnPerforming_CreatesConsoleContext_IfStateIsProcessing__OnPerformed_FixesExpiration_IfFollowsJobRetention()
         {
-            _connection.Setup(x => x.GetStateData("1"))
-                .Returns(CreateState(ProcessingState.StateName));
             _connection.Setup(x => x.GetHashTtl(It.IsAny<string>()))
                 .Returns(TimeSpan.FromSeconds(1));
 
@@ -89,23 +130,16 @@ namespace Hangfire.Console.Tests.Server
             var context = CreatePerformContext();
 
             performer.Perform(context);
-
-            var consoleContext = ConsoleContext.FromPerformContext(context);
-            Assert.Null(consoleContext);
-
-            _connection.Verify(x => x.GetHashTtl(It.IsAny<string>()));
             
+            _connection.Verify(x => x.GetHashTtl(It.IsAny<string>()));
             _transaction.Verify(x => x.ExpireSet(It.IsAny<string>(), It.IsAny<TimeSpan>()));
             _transaction.Verify(x => x.ExpireHash(It.IsAny<string>(), It.IsAny<TimeSpan>()));
-            
             _transaction.Verify(x => x.Commit());
         }
 
         [Fact]
-        public void CreatesConsoleContext_IfStateIsProcessing_DoesNotFixExpiration_IfNegativeTtl_AndFollowsJobRetention()
+        public void OnPerforming_CreatesConsoleContext_IfStateIsProcessing__OnPerformed_DoesNotFixExpiration_IfNegativeTtl_AndFollowsJobRetention()
         {
-            _connection.Setup(x => x.GetStateData("1"))
-                .Returns(CreateState(ProcessingState.StateName));
             _connection.Setup(x => x.GetHashTtl(It.IsAny<string>()))
                 .Returns(TimeSpan.FromSeconds(-1));
 
@@ -114,19 +148,13 @@ namespace Hangfire.Console.Tests.Server
 
             performer.Perform(context);
 
-            var consoleContext = ConsoleContext.FromPerformContext(context);
-            Assert.Null(consoleContext);
-
             _connection.Verify(x => x.GetHashTtl(It.IsAny<string>()));
-
             _transaction.Verify(x => x.Commit(), Times.Never);
         }
 
         [Fact]
-        public void CreatesConsoleContext_IfStateIsProcessing_DoesNotFixExpiration_IfZeroTtl_AndFollowsJobRetention()
+        public void OnPerforming_CreatesConsoleContext_IfStateIsProcessing__OnPerformed_DoesNotFixExpiration_IfZeroTtl_AndFollowsJobRetention()
         {
-            _connection.Setup(x => x.GetStateData("1"))
-                .Returns(CreateState(ProcessingState.StateName));
             _connection.Setup(x => x.GetHashTtl(It.IsAny<string>()))
                 .Returns(TimeSpan.Zero);
 
@@ -134,42 +162,32 @@ namespace Hangfire.Console.Tests.Server
             var context = CreatePerformContext();
 
             performer.Perform(context);
-
-            var consoleContext = ConsoleContext.FromPerformContext(context);
-            Assert.Null(consoleContext);
-
+            
             _connection.Verify(x => x.GetHashTtl(It.IsAny<string>()));
-
             _transaction.Verify(x => x.Commit(), Times.Never);
         }
 
         [Fact]
-        public void CreatesConsoleContext_IfStateIsProcessing_ExpiresData_IfNotFollowsJobRetention()
+        public void OnPerforming_CreatesConsoleContext_IfStateIsProcessing__OnPerformed_ExpiresData_IfNotFollowsJobRetention()
         {
-            _connection.Setup(x => x.GetStateData("1"))
-                .Returns(CreateState(ProcessingState.StateName));
-
             var performer = new BackgroundJobPerformer(CreateJobFilterProvider());
             var context = CreatePerformContext();
 
             performer.Perform(context);
             
-            var consoleContext = ConsoleContext.FromPerformContext(context);
-            Assert.Null(consoleContext);
-
             _connection.Verify(x => x.GetHashTtl(It.IsAny<string>()), Times.Never);
-
             _transaction.Verify(x => x.ExpireSet(It.IsAny<string>(), It.IsAny<TimeSpan>()));
             _transaction.Verify(x => x.ExpireHash(It.IsAny<string>(), It.IsAny<TimeSpan>()));
-
             _transaction.Verify(x => x.Commit());
         }
 
-        public static void JobMethod(PerformContext context)
+        private static class JobClass
         {
-            // reset transaction method calls after OnPerforming is completed
-            var @this = (ConsoleServerFilterFacts) context.Items["this"];
-            @this._transaction.ResetCalls();
+            public static void JobMethod(PerformContext context)
+            {
+                // reset transaction method calls after OnPerforming is completed
+                (context.Items["reset"] as IInvocationList)?.Clear();
+            }
         }
 
         private IJobFilterProvider CreateJobFilterProvider(bool followJobRetention = false)
@@ -180,12 +198,14 @@ namespace Hangfire.Console.Tests.Server
             return new JobFilterProviderCollection(filters);
         }
 
-        private PerformContext CreatePerformContext()
+        private PerformContext CreatePerformContext() => CreatePerformContext(_connection.Object, _transaction.Invocations);
+
+        private PerformContext CreatePerformContext(IStorageConnection connection, IInvocationList invocationList = null)
         {
-            var context = new PerformContext(_connection.Object, 
-                new BackgroundJob("1", Job.FromExpression(() => JobMethod(null)), DateTime.UtcNow), 
+            var context = new PerformContext(connection, 
+                new BackgroundJob("1", Job.FromExpression(() => JobClass.JobMethod(null)), DateTime.UtcNow), 
                 _cancellationToken.Object);
-            context.Items["this"] = this;
+            context.Items["reset"] = invocationList;
             return context;
         }
 
@@ -196,7 +216,9 @@ namespace Hangfire.Console.Tests.Server
                 Name = stateName,
                 Data = new Dictionary<string, string>()
                 {
-                    ["StartedAt"] = JobHelper.SerializeDateTime(DateTime.UtcNow)
+                    ["StartedAt"] = JobHelper.SerializeDateTime(DateTime.UtcNow),
+                    ["ServerId"] = "SERVER-1",
+                    ["WorkerId"] = "WORKER-2"
                 }
             };
         }

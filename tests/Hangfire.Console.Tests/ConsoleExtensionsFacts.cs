@@ -38,8 +38,8 @@ namespace Hangfire.Console.Tests
         public void WriteLine_Writes_IfConsoleCreated()
         {
             var context = CreatePerformContext();
-            context.Items["ConsoleContext"] = CreateConsoleContext(context);
-
+            context.Items[ConsoleContext.Key] = CreateConsoleContext(context);
+            
             ConsoleExtensions.WriteLine(context, "");
 
             _transaction.Verify(x => x.Commit());
@@ -68,7 +68,7 @@ namespace Hangfire.Console.Tests
         public void WriteProgressBar_ReturnsProgressBar_IfConsoleCreated()
         {
             var context = CreatePerformContext();
-            context.Items["ConsoleContext"] = CreateConsoleContext(context);
+            context.Items[ConsoleContext.Key] = CreateConsoleContext(context);
 
             var progressBar = ConsoleExtensions.WriteProgressBar(context);
             
@@ -87,14 +87,17 @@ namespace Hangfire.Console.Tests
             _transaction.Verify(x => x.Commit(), Times.Never);
         }
 
-        public static void JobMethod()
+        private class JobClass
         {
+            public static void JobMethod()
+            {
+            }
         }
 
         private PerformContext CreatePerformContext()
         {
             return new PerformContext(_connection.Object,
-                new BackgroundJob("1", Common.Job.FromExpression(() => JobMethod()), DateTime.UtcNow),
+                new BackgroundJob("1", Common.Job.FromExpression(() => JobClass.JobMethod()), DateTime.UtcNow),
                 _cancellationToken.Object);
         }
 
