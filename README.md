@@ -10,7 +10,7 @@ Inspired by AppVeyor, Hangfire.Console provides a console-like logging experienc
 
 ## Features
 
- - **Provider-agnostic**: (allegedly) works with any job storage provider (currently tested with SqlServer and MongoDB). 
+ - **Provider-agnostic**: (allegedly) works with any job storage provider (currently tested with SqlServer, MemoryStorage, Redis.StackExchange and MongoDB). 
  - **100% Safe**: no Hangfire-managed data (e.g. jobs, states) is ever updated, hence there's no risk to corrupt it.
  - **With Live Updates**: new messages will appear as they're logged, as if you're looking at real console.
  - (blah-blah-blah)
@@ -58,7 +58,7 @@ Here's what you can configure:
 Hangfire.Console provides extension methods on `PerformContext` object, 
 hence you'll need to add it as a job argument. 
 
-**NOTE**: Like `IJobCancellationToken`, `PerformContext` is a special argument type which Hangfire will substitute automatically. You should pass `null` when enqueuing a job.
+**NOTE**: Like `IJobCancellationToken`, `PerformContext` is a special argument type which Hangfire will substitute automatically. You should pass `null` when enqueuing a job.  It is not currently possible to use constructor injection for the PerformContext in ASP.NET Core.
 
 Now you can write to console:
 
