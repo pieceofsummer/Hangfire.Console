@@ -28,8 +28,9 @@ namespace Hangfire.Console
 
             options.Validate(nameof(options));
 
-            if (DashboardRoutes.Routes.Contains("/console/([0-9a-f]{11}.+)"))
-                throw new InvalidOperationException("Console is already initialized");
+            var isAlreadyInitialized = DashboardRoutes.Routes.Contains("/console/([0-9a-f]{11}.+)")
+            if (isAlreadyInitialized)
+                return configuration;
 
             // register server filter for jobs
             GlobalJobFilters.Filters.Add(new ConsoleServerFilter(options));
