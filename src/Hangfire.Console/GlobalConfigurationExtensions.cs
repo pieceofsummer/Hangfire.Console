@@ -28,7 +28,7 @@ namespace Hangfire.Console
 
             options.Validate(nameof(options));
 
-            var isAlreadyInitialized = DashboardRoutes.Routes.Contains("/console/([0-9a-f]{11}.+)")
+            var isAlreadyInitialized = DashboardRoutes.Routes.Contains("/console/([0-9a-f]{11}.+)");
             if (isAlreadyInitialized)
                 return configuration;
 
