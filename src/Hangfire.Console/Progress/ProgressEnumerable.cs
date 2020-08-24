@@ -40,7 +40,7 @@ namespace Hangfire.Console.Progress
                 _progressBar = progressBar;
                 _count = count;
                 _index = -1;
-                _currentProgress = 0;
+                _currentProgress = -1;
             }
             
             public object Current => _enumerator.Current;
