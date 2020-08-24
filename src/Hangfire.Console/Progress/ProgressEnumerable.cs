@@ -32,7 +32,7 @@ namespace Hangfire.Console.Progress
         {
             private readonly IEnumerator _enumerator;
             private readonly IProgressBar _progressBar;
-            private int _count, _index;
+            private int _count, _index, _currentProgress;
 
             public Enumerator(IEnumerator enumerator, IProgressBar progressBar, int count)
             {
@@ -40,6 +40,7 @@ namespace Hangfire.Console.Progress
                 _progressBar = progressBar;
                 _count = count;
                 _index = -1;
+                _currentProgress = 0;
             }
             
             public object Current => _enumerator.Current;
@@ -68,8 +69,12 @@ namespace Hangfire.Console.Progress
                         // adjust maxCount if overrunned
                         _count = _index + 1;
                     }
-
-                    _progressBar.SetValue(_index * 100.0 / _count);
+                    var newProgress = (int)Math.Floor(_index * 100.0 / _count);
+                    if (_currentProgress != newProgress)
+                    {
+                        _progressBar.SetValue(_index * 100.0 / _count);
+                        _currentProgress = newProgress;
+                    }
                 }
                 return r;
             }
