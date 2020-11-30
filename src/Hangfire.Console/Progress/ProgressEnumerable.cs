@@ -33,6 +33,7 @@ namespace Hangfire.Console.Progress
             private readonly IEnumerator _enumerator;
             private readonly IProgressBar _progressBar;
             private int _count, _index;
+            private double _lastProgressValue;
 
             public Enumerator(IEnumerator enumerator, IProgressBar progressBar, int count)
             {
@@ -69,7 +70,11 @@ namespace Hangfire.Console.Progress
                         _count = _index + 1;
                     }
 
-                    _progressBar.SetValue(_index * 100.0 / _count);
+                    double currentProgressValue = _index * 100.0 / _count;
+                    if (currentProgressValue == 100.0 || _lastProgressValue <= currentProgressValue - 1.0)
+                    {
+                        _progressBar.SetValue(_lastProgressValue = currentProgressValue);
+                    }
                 }
                 return r;
             }
@@ -117,6 +122,7 @@ namespace Hangfire.Console.Progress
             private readonly IEnumerator<T> _enumerator;
             private readonly IProgressBar _progressBar;
             private int _count, _index;
+            private double _lastProgressValue;
 
             public Enumerator(IEnumerator<T> enumerator, IProgressBar progressBar, int count)
             {
@@ -155,7 +161,11 @@ namespace Hangfire.Console.Progress
                         _count = _index + 1;
                     }
 
-                    _progressBar.SetValue(_index * 100.0 / _count);
+                    double currentProgressValue = _index * 100.0 / _count;
+                    if (currentProgressValue == 100.0 || _lastProgressValue <= currentProgressValue - 1.0)
+                    {
+                        _progressBar.SetValue(_lastProgressValue = currentProgressValue);
+                    }
                 }
                 return r;
             }
