@@ -19,7 +19,8 @@ namespace Hangfire.Console.Dashboard
     {
         internal static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings()
         {
-            ContractResolver = new DefaultContractResolver()
+            ContractResolver = new DefaultContractResolver(),
+            Culture = System.Globalization.CultureInfo.InvariantCulture
         };
         
         // ReSharper disable once NotAccessedField.Local
