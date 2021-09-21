@@ -23,7 +23,7 @@ namespace Hangfire.Console.Dashboard
         private static readonly Regex LinkDetector = new Regex(@"
             \b(?:(?<schema>(?:f|ht)tps?://)|www\.|ftp\.)
               (?:\([-\w+&@#/%=~|$?!:,.]*\)|[-\w+&@#/%=~|$?!:,.])*
-              (?:\([-\w+&@#/%=~|$?!:,.]*\)|[\w+&@#/%=~|$])", 
+              (?:\([-\w+&@#/%=~|$?!:,.]*\)|[\w+&@#/%=~|$])",
             RegexOptions.IgnorePatternWhitespace | RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         private class DummyPage : RazorPage
@@ -41,7 +41,7 @@ namespace Hangfire.Console.Dashboard
         public static void RenderText(StringBuilder buffer, string text)
         {
             if (string.IsNullOrEmpty(text)) return;
-            
+
             var start = 0;
 
             foreach (Match m in LinkDetector.Matches(text))
@@ -136,7 +136,7 @@ namespace Hangfire.Console.Dashboard
                 RenderLine(builder, line, timestamp);
             }
         }
-        
+
         /// <summary>
         /// Fetches and renders console line buffer.
         /// </summary>
@@ -155,10 +155,36 @@ namespace Hangfire.Console.Dashboard
 
             var items = ReadLines(storage, consoleId, ref start);
 
+#if NETSTANDARD2_0
+            FixRightToLeftNumberFormat();
+#endif
+
             builder.AppendFormat("<div class=\"line-buffer\" data-n=\"{1}\">", consoleId, start);
             RenderLines(builder, items, consoleId.DateValue);
             builder.Append("</div>");
         }
+
+#if NETSTANDARD2_0
+        /// <summary>
+        /// Making sure that -1 will not be sent to UI 1-, this issue appears in net5 and above.
+        /// </summary>
+        private static void FixRightToLeftNumberFormat()
+        {
+            if (CultureInfo.CurrentCulture.TextInfo.IsRightToLeft)
+            {
+                if (CultureInfo.CurrentCulture.IsReadOnly)
+                {
+                    var clone = CultureInfo.CurrentCulture.Clone() as CultureInfo;
+                    clone.NumberFormat = NumberFormatInfo.InvariantInfo;
+                    CultureInfo.CurrentCulture = clone;
+                }
+                else
+                {
+                    CultureInfo.CurrentCulture.NumberFormat = NumberFormatInfo.InvariantInfo;
+                }
+            }
+        }
+#endif
 
         /// <summary>
         /// Fetches console lines from storage.
@@ -182,7 +208,7 @@ namespace Hangfire.Console.Dashboard
                 // has some new items to fetch
 
                 Dictionary<string, ConsoleLine> progressBars = null;
-                    
+
                 foreach (var entry in storage.GetLines(consoleId, start, count - 1))
                 {
                     if (entry.ProgressValue.HasValue)
