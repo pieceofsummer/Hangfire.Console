@@ -1,5 +1,6 @@
 ﻿using Hangfire.Dashboard;
 using System;
+using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -23,7 +24,7 @@ namespace Hangfire.Console.Dashboard
 
             builder.Append(@"(function (hangfire) {")
                    .Append("hangfire.config = hangfire.config || {};")
-                   .AppendFormat("hangfire.config.consolePollInterval = {0};", _options.PollInterval)
+                   .AppendFormat(CultureInfo.InvariantCulture, "hangfire.config.consolePollInterval = {0};", _options.PollInterval)
                    .AppendFormat("hangfire.config.consolePollUrl = '{0}/console/';", context.Request.PathBase)
                    .Append("})(window.Hangfire = window.Hangfire || {});")
                    .AppendLine();

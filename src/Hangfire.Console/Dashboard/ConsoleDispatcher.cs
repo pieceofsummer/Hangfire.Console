@@ -1,9 +1,10 @@
 ﻿using Hangfire.Dashboard;
-using System.Threading.Tasks;
-using System.Text;
+using Hangfire.Console.Storage;
 using Hangfire.Console.Serialization;
 using System;
-using Hangfire.Console.Storage;
+using System.Globalization;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Hangfire.Console.Dashboard
 {
@@ -29,7 +30,7 @@ namespace Hangfire.Console.Dashboard
             var startArg = context.Request.GetQuery("start");
 
             // try to parse offset at which we should start returning requests
-            if (string.IsNullOrEmpty(startArg) || !int.TryParse(startArg, out var start))
+            if (string.IsNullOrEmpty(startArg) || !int.TryParse(startArg, NumberStyles.Integer, CultureInfo.InvariantCulture, out var start))
             {
                 // if not provided or invalid, fetch records from the very start
                 start = 0;

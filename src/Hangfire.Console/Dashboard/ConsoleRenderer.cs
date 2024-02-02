@@ -155,7 +155,7 @@ namespace Hangfire.Console.Dashboard
 
             var items = ReadLines(storage, consoleId, ref start);
 
-            builder.AppendFormat("<div class=\"line-buffer\" data-n=\"{1}\">", consoleId, start);
+            builder.AppendFormat(CultureInfo.InvariantCulture, "<div class=\"line-buffer\" data-n=\"{0}\">", start);
             RenderLines(builder, items, consoleId.DateValue);
             builder.Append("</div>");
         }

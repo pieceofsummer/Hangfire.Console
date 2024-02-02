@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Description>Job console for Hangfire</Description>
     <AssemblyTitle>Hangfire.Console</AssemblyTitle>
-    <VersionPrefix>1.4.2</VersionPrefix>
+    <VersionPrefix>1.4.3</VersionPrefix>
     <Authors>Alexey Skalozub</Authors>
     <TargetFrameworks>netstandard1.3;net45</TargetFrameworks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -11,6 +11,9 @@
     <PackageId>Hangfire.Console</PackageId>
     <PackageTags>hangfire;console;logging</PackageTags>
     <PackageReleaseNotes>History:
+      v1.4.3:
+      • Fix culture-related issues
+
       v1.4.2:
       • Added StringFormatMethod attributes on WriteLine methods (for better intellisense)
       
