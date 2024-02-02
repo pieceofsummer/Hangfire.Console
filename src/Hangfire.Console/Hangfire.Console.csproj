@@ -13,6 +13,7 @@
     <PackageReleaseNotes>History:
       v1.4.3:
       • Fix culture-related issues
+      • Add configurable number of decimal digits for progress bars
 
       v1.4.2:
       • Added StringFormatMethod attributes on WriteLine methods (for better intellisense)

@@ -11,15 +11,18 @@ namespace Hangfire.Console.Tests.Server
     {
         private readonly Mock<IConsoleStorage> _storage;
 
+        private readonly ConsoleOptions _options;
+
         public ConsoleContextFacts()
         {
             _storage = new Mock<IConsoleStorage>();
+            _options = new ConsoleOptions();
         }
 
         [Fact]
         public void Ctor_ThrowsException_IfConsoleIdIsNull()
         {
-            Assert.Throws<ArgumentNullException>("consoleId", () => new ConsoleContext(null, _storage.Object));
+            Assert.Throws<ArgumentNullException>("consoleId", () => new ConsoleContext(null, _storage.Object, _options));
         }
 
         [Fact]
@@ -27,14 +30,22 @@ namespace Hangfire.Console.Tests.Server
         {
             var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
 
-            Assert.Throws<ArgumentNullException>("storage", () => new ConsoleContext(consoleId, null));
+            Assert.Throws<ArgumentNullException>("storage", () => new ConsoleContext(consoleId, null, _options));
+        }
+
+        [Fact]
+        public void Ctor_ThrowsException_IfOptionsIsNull()
+        {
+            var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+
+            Assert.Throws<ArgumentNullException>("options", () => new ConsoleContext(consoleId, _storage.Object, null));
         }
 
         [Fact]
         public void Ctor_InitializesConsole()
         {
             var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
-            var context = new ConsoleContext(consoleId, _storage.Object);
+            var context = new ConsoleContext(consoleId, _storage.Object, _options);
 
             _storage.Verify(x => x.InitConsole(consoleId));
         }
@@ -43,7 +54,7 @@ namespace Hangfire.Console.Tests.Server
         public void AddLine_ThrowsException_IfLineIsNull()
         {
             var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
-            var context = new ConsoleContext(consoleId, _storage.Object);
+            var context = new ConsoleContext(consoleId, _storage.Object, _options);
 
             Assert.Throws<ArgumentNullException>("line", () => context.AddLine(null));
         }
@@ -52,7 +63,7 @@ namespace Hangfire.Console.Tests.Server
         public void AddLine_ReallyAddsLine()
         {
             var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
-            var context = new ConsoleContext(consoleId, _storage.Object);
+            var context = new ConsoleContext(consoleId, _storage.Object, _options);
 
             context.AddLine(new ConsoleLine() { TimeOffset = 0, Message = "line" });
 
@@ -63,7 +74,7 @@ namespace Hangfire.Console.Tests.Server
         public void AddLine_CorrectsTimeOffset()
         {
             var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
-            var context = new ConsoleContext(consoleId, _storage.Object);
+            var context = new ConsoleContext(consoleId, _storage.Object, _options);
 
             var line1 = new ConsoleLine() { TimeOffset = 0, Message = "line" };
             var line2 = new ConsoleLine() { TimeOffset = 0, Message = "line" };
@@ -79,7 +90,7 @@ namespace Hangfire.Console.Tests.Server
         public void WriteLine_ReallyAddsLine()
         {
             var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
-            var context = new ConsoleContext(consoleId, _storage.Object);
+            var context = new ConsoleContext(consoleId, _storage.Object, _options);
 
             context.WriteLine("line", null);
 
@@ -90,7 +101,7 @@ namespace Hangfire.Console.Tests.Server
         public void WriteLine_ReallyAddsLineWithColor()
         {
             var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
-            var context = new ConsoleContext(consoleId, _storage.Object);
+            var context = new ConsoleContext(consoleId, _storage.Object, _options);
 
             context.WriteLine("line", ConsoleTextColor.Red);
 
@@ -101,7 +112,7 @@ namespace Hangfire.Console.Tests.Server
         public void WriteProgressBar_WritesDefaults_AndReturnsNonNull()
         {
             var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
-            var context = new ConsoleContext(consoleId, _storage.Object);
+            var context = new ConsoleContext(consoleId, _storage.Object, _options);
 
             var progressBar = context.WriteProgressBar(null, 0, null);
 
@@ -113,7 +124,7 @@ namespace Hangfire.Console.Tests.Server
         public void WriteProgressBar_WritesName_AndReturnsNonNull()
         {
             var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
-            var context = new ConsoleContext(consoleId, _storage.Object);
+            var context = new ConsoleContext(consoleId, _storage.Object, _options);
 
             var progressBar = context.WriteProgressBar("test", 0, null);
 
@@ -125,7 +136,7 @@ namespace Hangfire.Console.Tests.Server
         public void WriteProgressBar_WritesInitialValue_AndReturnsNonNull()
         {
             var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
-            var context = new ConsoleContext(consoleId, _storage.Object);
+            var context = new ConsoleContext(consoleId, _storage.Object, _options);
 
             var progressBar = context.WriteProgressBar(null, 5, null);
 
@@ -137,7 +148,7 @@ namespace Hangfire.Console.Tests.Server
         public void WriteProgressBar_WritesProgressBarColor_AndReturnsNonNull()
         {
             var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
-            var context = new ConsoleContext(consoleId, _storage.Object);
+            var context = new ConsoleContext(consoleId, _storage.Object, _options);
 
             var progressBar = context.WriteProgressBar(null, 0, ConsoleTextColor.Red);
 
@@ -149,7 +160,7 @@ namespace Hangfire.Console.Tests.Server
         public void Expire_ReallyExpiresLines()
         {
             var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
-            var context = new ConsoleContext(consoleId, _storage.Object);
+            var context = new ConsoleContext(consoleId, _storage.Object, _options);
 
             context.Expire(TimeSpan.FromHours(1));
 
@@ -163,7 +174,7 @@ namespace Hangfire.Console.Tests.Server
                 .Returns(TimeSpan.FromSeconds(-1));
 
             var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
-            var context = new ConsoleContext(consoleId, _storage.Object);
+            var context = new ConsoleContext(consoleId, _storage.Object, _options);
 
             context.FixExpiration();
 
@@ -178,7 +189,7 @@ namespace Hangfire.Console.Tests.Server
                 .Returns(TimeSpan.FromHours(1));
 
             var consoleId = new ConsoleId("1", new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc));
-            var context = new ConsoleContext(consoleId, _storage.Object);
+            var context = new ConsoleContext(consoleId, _storage.Object, _options);
 
             context.FixExpiration();
 

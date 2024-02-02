@@ -1,0 +1,3 @@
+{
+    "dotnet-test-explorer.testProjectPath": "tests/Hangfire.Console.Tests/Hangfire.Console.Tests.csproj",
+}

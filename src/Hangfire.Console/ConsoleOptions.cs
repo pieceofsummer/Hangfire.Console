@@ -38,6 +38,10 @@ namespace Hangfire.Console
         /// </summary>
         public string TimestampColor { get; set; } = "#00aad7";
 
+        /// <summary>
+        /// Gets or sets number of decimal digits for progress bar values.
+        /// </summary>
+        public int ProgressBarDecimalDigits { get; set; } = 1;
 
         internal void Validate(string paramName)
         {
@@ -46,6 +50,9 @@ namespace Hangfire.Console
 
             if (PollInterval < 100)
                 throw new ArgumentException("PollInterval shouldn't be less than 100 ms", paramName);
+
+            if (ProgressBarDecimalDigits < 0 || ProgressBarDecimalDigits > 3)
+                throw new ArgumentException("ProgressBarDecimalDigits should be between 0 and 3", paramName);
         }
 
 

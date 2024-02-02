@@ -39,7 +39,8 @@ namespace Hangfire.Console.Server
 
             filterContext.Items["ConsoleContext"] = new ConsoleContext(
                 new ConsoleId(filterContext.BackgroundJob.Id, startedAt),
-                new ConsoleStorage(filterContext.Connection));
+                new ConsoleStorage(filterContext.Connection),
+                _options);
         }
 
         public void OnPerformed(PerformedContext filterContext)

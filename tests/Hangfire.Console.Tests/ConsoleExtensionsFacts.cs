@@ -98,11 +98,12 @@ namespace Hangfire.Console.Tests
                 _cancellationToken.Object);
         }
 
-        private ConsoleContext CreateConsoleContext(PerformContext context)
+        private ConsoleContext CreateConsoleContext(PerformContext context, ConsoleOptions options = null)
         {
             return new ConsoleContext(
                 new ConsoleId(context.BackgroundJob.Id, DateTime.UtcNow),
-                new ConsoleStorage(context.Connection));
+                new ConsoleStorage(context.Connection),
+                options ?? new ConsoleOptions());
         }
 
     }

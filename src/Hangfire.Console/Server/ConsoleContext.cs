@@ -12,6 +12,7 @@ namespace Hangfire.Console.Server
     {
         private readonly ConsoleId _consoleId;
         private readonly IConsoleStorage _storage;
+        private readonly ConsoleOptions _options;
         private double _lastTimeOffset;
         private int _nextProgressBarId;
 
@@ -32,10 +33,11 @@ namespace Hangfire.Console.Server
             return (ConsoleContext)context.Items["ConsoleContext"];
         }
 
-        public ConsoleContext(ConsoleId consoleId, IConsoleStorage storage)
+        public ConsoleContext(ConsoleId consoleId, IConsoleStorage storage, ConsoleOptions options)
         {
             _consoleId = consoleId ?? throw new ArgumentNullException(nameof(consoleId));
             _storage = storage ?? throw new ArgumentNullException(nameof(storage));
+            _options = options ?? throw new ArgumentNullException(nameof(options));
 
             _lastTimeOffset = 0;
             _nextProgressBarId = 0;
@@ -73,9 +75,9 @@ namespace Hangfire.Console.Server
 
         public IProgressBar WriteProgressBar(string name, double value, ConsoleTextColor color)
         {
-            var progressBarId = Interlocked.Increment(ref _nextProgressBarId);
+            var progressBarId = Interlocked.Increment(ref _nextProgressBarId).ToString(CultureInfo.InvariantCulture);
 
-            var progressBar = new DefaultProgressBar(this, progressBarId.ToString(CultureInfo.InvariantCulture), name, color);
+            var progressBar = new DefaultProgressBar(this, progressBarId, _options.ProgressBarDecimalDigits, name, color);
 
             // set initial value
             progressBar.SetValue(value);

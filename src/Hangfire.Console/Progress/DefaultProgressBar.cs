@@ -12,17 +12,21 @@ namespace Hangfire.Console.Progress
     {
         private readonly ConsoleContext _context;
         private readonly string _progressBarId;
+        private readonly int _decimalDigits;
         private string _name;
         private string _color;
         private double _value;
 
-        internal DefaultProgressBar(ConsoleContext context, string progressBarId, string name, string color)
+        internal DefaultProgressBar(ConsoleContext context, string progressBarId, int decimalDigits, string name, string color)
         {
             if (string.IsNullOrEmpty(progressBarId))
                 throw new ArgumentNullException(nameof(progressBarId));
-               
+            if (decimalDigits < 0 || decimalDigits > 3)
+                throw new ArgumentOutOfRangeException(nameof(decimalDigits), "Number of decimal digits should be between 0 and 3");
+
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _progressBarId = progressBarId;
+            _decimalDigits = decimalDigits;
             _name = name;
             _color = color;
             _value = -1;
@@ -35,7 +39,7 @@ namespace Hangfire.Console.Progress
 
         public void SetValue(double value)
         {
-            value = Math.Round(value, 1);
+            value = Math.Round(value, _decimalDigits);
 
             if (value < 0 || value > 100)
                 throw new ArgumentOutOfRangeException(nameof(value), "Value should be in range 0..100");
