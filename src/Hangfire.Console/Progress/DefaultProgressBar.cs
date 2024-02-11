@@ -49,8 +49,8 @@ namespace Hangfire.Console.Progress
             
             _context.AddLine(new ConsoleLine() { Message = _progressBarId, ProgressName = _name, ProgressValue = value, TextColor = _color });
 
-            _name = null; // write name only once
-            _color = null; // write color only once
+            _name = String.IsNullOrEmpty(_name) ? null : _name;
+            _color = String.IsNullOrEmpty(_color) ? null : _color;
         }
     }
 }
